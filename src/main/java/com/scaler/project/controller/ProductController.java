@@ -1,5 +1,6 @@
 package com.scaler.project.controller;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -84,18 +85,5 @@ public class ProductController {
 	public ResponseEntity<String> deleteProduct(@PathVariable("id") Long id) {
 		String msg = ps.deleteProduct(id);
 		return new ResponseEntity<>(msg, HttpStatus.OK);
-	}
-
-	@RequestMapping(value="/products/sort", method=RequestMethod.GET)
-	@ResponseBody
-	public ResponseEntity<List<Product>> getProductsInOrder(@RequestParam(value="sort", defaultValue = "asc")
-															String sortType) {
-		List<Product> productsList = ps.getAllProducts();
-
-		if(sortType.equals("desc")) {
-			productsList.sort(Collections.reverseOrder());
-			return new ResponseEntity<>(productsList, HttpStatus.OK);
-		}
-		return new ResponseEntity<>(productsList, HttpStatus.OK);
 	}
 }

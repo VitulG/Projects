@@ -3,6 +3,10 @@ package com.scaler.project.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -119,5 +123,4 @@ public class ProductServiceImpl implements ProductService{
 		response.getBody().convertToProduct();
 		return "Items with id: "+id+" deleted successfully";
 	}
-
 }
