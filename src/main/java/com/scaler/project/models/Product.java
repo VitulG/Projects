@@ -11,7 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class Product extends BaseModel implements Comparable<Product>{
+public class Product extends BaseModel {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long productId;
@@ -24,8 +24,5 @@ public class Product extends BaseModel implements Comparable<Product>{
 	private String description;
 	private String imageUrl;
 
-	@Override
-	public int compareTo(Product product) {
-		return this.getProductId().compareTo(product.getProductId());
-	}
+
 }

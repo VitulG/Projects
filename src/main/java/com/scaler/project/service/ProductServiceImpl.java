@@ -32,7 +32,6 @@ public class ProductServiceImpl implements ProductService{
 
 	@Override
 	public Product getProductById(Long id) {
-		
 		ResponseEntity<ProductDto> response = rt.getForEntity("https://fakestoreapi.com/products/"+id, 
 				ProductDto.class);
 		

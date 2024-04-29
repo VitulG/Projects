@@ -30,7 +30,7 @@ import com.scaler.project.service.ProductService;
 public class ProductController {
 	
 	private ProductService ps;
-	
+
 	public ProductController(@Qualifier("SelfProductService") ProductService ps) {
 		this.ps = ps;
 	}

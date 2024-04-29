@@ -1,6 +1,7 @@
 package com.scaler.project.repositories;
 
 import com.scaler.project.models.Categories;
+import com.scaler.project.repositories.projections.ProductProjection;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -34,4 +35,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>{
     @Query("UPDATE Product p SET p.title= :title, p.price = :price, p.description=:description, p.imageUrl=:image WHERE p.productId = :productId")
     void updateBy(@Param("productId")  Long productId, @Param("title") String title, @Param("price") Double price,
                   @Param("description") String description, @Param("image") String image);
+
+
+    @Query("SELECT p.productId, p.title FROM Product p WHERE p.productId=:productId")
+    ProductProjection getProductIdAndTitleById(@Param("productId") Long productId);
 }
