@@ -13,12 +13,12 @@ import lombok.Setter;
 @Entity
 public class Product extends BaseModel {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long productId;
 	private String title;
 	private Double price;
 	
-	@ManyToOne(cascade = {CascadeType.PERSIST})
+	@ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
 	private Categories category;
 	
 	private String description;

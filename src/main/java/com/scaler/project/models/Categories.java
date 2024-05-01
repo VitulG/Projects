@@ -16,11 +16,11 @@ import lombok.Setter;
 @Entity
 public class Categories extends BaseModel{
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int categoryId;
 	private String title;
 	
-	@OneToMany(mappedBy = "category", cascade = {CascadeType.REMOVE})
+	@OneToMany(fetch = FetchType.EAGER, mappedBy = "category", cascade = {CascadeType.REMOVE})
 	@JsonIgnore
 	private List<Product> products;
 
