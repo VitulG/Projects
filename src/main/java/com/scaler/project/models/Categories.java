@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 @Getter
 @Setter
@@ -20,7 +22,8 @@ public class Categories extends BaseModel{
 	private int categoryId;
 	private String title;
 	
-	@OneToMany(fetch = FetchType.EAGER, mappedBy = "category", cascade = {CascadeType.REMOVE})
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "category", cascade = {CascadeType.REMOVE})
+	@Fetch(FetchMode.JOIN)
 	@JsonIgnore
 	private List<Product> products;
 

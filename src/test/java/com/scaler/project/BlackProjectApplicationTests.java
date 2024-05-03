@@ -43,9 +43,20 @@ class BlackProjectApplicationTests {
 	@Test
 	void checkQuery2() {
 		List<Categories> categories = cr.findAll();
+		// N + 1 problem
 		for(Categories category : categories) {
 			for(Product product  : category.getProducts()) {
 				System.out.println(product.getTitle()+" "+product.getPrice());
+			}
+		}
+	}
+
+	@Test
+	void checkQuery3() {
+		List<Categories> categories = cr.findAll();
+		for(Categories category : categories) {
+			for(Product product : category.getProducts()) {
+				System.out.println(product.getTitle() +" " + product.getPrice());
 			}
 		}
 	}

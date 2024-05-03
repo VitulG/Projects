@@ -20,7 +20,6 @@ public class Product extends BaseModel {
 	
 	@ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
 	private Categories category;
-	
 	private String description;
 	private String imageUrl;
 
