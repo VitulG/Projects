@@ -10,7 +10,8 @@ import lombok.Setter;
 @Setter
 public class CreateProductDto {
 	private Long id;
-	private String title;
+	private String productTitle;
+	private String categoryTitle;
 	private Double price;
 	private String category;
 	private String description;
@@ -20,13 +21,13 @@ public class CreateProductDto {
 		
 		Product product = new Product();
 		product.setProductId(this.id);
-		product.setTitle(getTitle());
+		product.setTitle(getProductTitle());
 		product.setPrice(getPrice());
 		product.setDescription(getDescription());
 		product.setImageUrl(getImage());
 		
 		Categories cat = new Categories();
-		cat.setTitle(getTitle());
+		cat.setTitle(getCategoryTitle());
 		product.setCategory(cat);
 		
 		return product;

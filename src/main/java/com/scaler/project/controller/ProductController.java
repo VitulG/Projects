@@ -35,6 +35,12 @@ public class ProductController {
 		this.ps = ps;
 	}
 
+	@GetMapping("/productService/health")
+	public ResponseEntity<String> getHealth() {
+		String msg = "health is Ok";
+		return new ResponseEntity<>(msg, HttpStatus.OK);
+	}
+
 	@RequestMapping(value = "/products/{id}", method = RequestMethod.GET)
 	@ResponseBody
 	public ResponseEntity<Product> getProductById(@PathVariable("id") Long id){

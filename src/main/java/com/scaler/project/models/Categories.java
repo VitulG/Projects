@@ -20,10 +20,10 @@ public class Categories extends BaseModel{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int categoryId;
+
 	private String title;
 	
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "category", cascade = {CascadeType.REMOVE})
-	@Fetch(FetchMode.JOIN)
+	@OneToMany(mappedBy = "category", cascade = {CascadeType.REMOVE})
 	@JsonIgnore
 	private List<Product> products;
 

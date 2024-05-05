@@ -25,39 +25,4 @@ class BlackProjectApplicationTests {
 	void contextLoads() {
 	}
 
-	@Test
-	void chekQuery() {
-		ProductProjection product = pr.getProductIdAndTitleById(1L);
-		System.out.println(product.getId());
-		System.out.println(product.getTitle()); 
-	}
-
-	@Test
-	void checkQuery1() {
-		Optional<List<Product>> listOFProducts = pr.findAllBy("Nokia");
-		for(Product product : listOFProducts.get()) {
-			System.out.println(product.getProductId() +" "+product.getTitle());
-		}
-	}
-
-	@Test
-	void checkQuery2() {
-		List<Categories> categories = cr.findAll();
-		// N + 1 problem
-		for(Categories category : categories) {
-			for(Product product  : category.getProducts()) {
-				System.out.println(product.getTitle()+" "+product.getPrice());
-			}
-		}
-	}
-
-	@Test
-	void checkQuery3() {
-		List<Categories> categories = cr.findAll();
-		for(Categories category : categories) {
-			for(Product product : category.getProducts()) {
-				System.out.println(product.getTitle() +" " + product.getPrice());
-			}
-		}
-	}
 }

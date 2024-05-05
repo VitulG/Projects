@@ -12,14 +12,17 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 public class Product extends BaseModel {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long productId;
+
 	private String title;
 	private Double price;
 	
-	@ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
+	@ManyToOne(cascade = {CascadeType.PERSIST})
 	private Categories category;
+
 	private String description;
 	private String imageUrl;
 

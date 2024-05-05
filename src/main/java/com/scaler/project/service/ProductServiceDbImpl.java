@@ -39,16 +39,16 @@ public class ProductServiceDbImpl implements ProductService{
 	@Override
 	public Product createProduct(CreateProductDto createProductDto) {
 		Product product = new Product();
-		product.setTitle(createProductDto.getTitle());
+		product.setTitle(createProductDto.getProductTitle());
 		product.setPrice(createProductDto.getPrice());
 		product.setDescription(createProductDto.getDescription());
 		product.setImageUrl(createProductDto.getImage());
 		
-		Categories categoryFromDb = cr.findByTitle(createProductDto.getTitle()); 
+		Categories categoryFromDb = cr.findByTitle(createProductDto.getCategoryTitle());
 		
 		if(categoryFromDb == null) {
 			Categories category = new Categories();
-			category.setTitle(createProductDto.getTitle());
+			category.setTitle(createProductDto.getCategoryTitle());
 			categoryFromDb = cr.save(category);
 		}
 		product.setCategory(categoryFromDb);
@@ -83,11 +83,11 @@ public class ProductServiceDbImpl implements ProductService{
 	public void updateProduct(Long id, ProductDto productDto) {
         Product product = productDto.convertToProduct();
 
-        Categories categoriesFromDB = cr.findByTitle(productDto.getTitle());
+        Categories categoriesFromDB = cr.findByTitle(productDto.getCategoryTitle());
 
         if(categoriesFromDB == null) {
             Categories category = new Categories();
-            category.setTitle(productDto.getTitle());
+            category.setTitle(productDto.getCategoryTitle());
             categoriesFromDB = cr.save(category);
         }
         pr.updateBy(id, product.getTitle(), product.getPrice(),
