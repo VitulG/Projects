@@ -22,8 +22,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>{
 	@Query("SELECT p FROM Product p where p.productId = :productId")
     Optional<Product> findById(Long productId);
 
-    @Query("SELECT p FROM Product p where p.title = :title")
-    Optional<List<Product>> findAllBy(String title);
+    @Query("SELECT p FROM Product p JOIN p.category c WHERE c.title = :title")
+    Optional<List<Product>> findAllBy(@Param("title") String title);
 
     @Transactional
     @Modifying
@@ -36,10 +36,4 @@ public interface ProductRepository extends JpaRepository<Product, Long>{
     void updateBy(@Param("productId")  Long productId, @Param("title") String title, @Param("price") Double price,
                   @Param("description") String description, @Param("image") String image);
 
-
-    @Query("SELECT p.productId, p.title FROM Product p WHERE p.productId=:productId")
-    ProductProjection getProductIdAndTitleById(@Param("productId") Long productId);
-
-    @Query("SELECT p FROM Product p WHERE p.title = :category")
-    Optional<Product> findAllByCategory(String category);
 }
