@@ -40,7 +40,7 @@ public class ProductServiceImpl implements ProductService{
 	}
 
 	@Override
-	public Product createProduct(CreateProductDto createProductDto) {
+	public Long createProduct(CreateProductDto createProductDto) {
 		// TODO Auto-generated method stub
 		
 		ResponseEntity<CreateProductDto> response = rt
@@ -48,7 +48,9 @@ public class ProductServiceImpl implements ProductService{
 						createProductDto, CreateProductDto.class);
 		
 		CreateProductDto receiveDto = response.getBody();
-		return receiveDto.convertToProduct();
+		receiveDto.convertToProduct();
+
+		return receiveDto.getId();
 	}
 
 	@Override

@@ -10,7 +10,7 @@ import com.scaler.project.models.Product;
 
 public interface ProductService {
 	public Product getProductById(Long id);
-	public Product createProduct(CreateProductDto createProductDto);
+	public Long createProduct(CreateProductDto createProductDto);
 	public List<Product> getAllProducts();
 	public List<CategoryDto> getAllCategories();
 	public List<Product> getProductsByCategory(String category);

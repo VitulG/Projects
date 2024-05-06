@@ -50,9 +50,10 @@ public class ProductController {
 	
 	@RequestMapping(value = "/products", method = RequestMethod.POST)
 	@ResponseBody
-	public ResponseEntity<Product> createProduct(@RequestBody CreateProductDto cpd) {
-		Product product = ps.createProduct(cpd);
-		return new ResponseEntity<>(product, HttpStatus.CREATED);
+	public ResponseEntity<String> createProduct(@RequestBody CreateProductDto cpd) {
+		Long productId = ps.createProduct(cpd);
+		String msg = "Product has been created with product id: "+productId;
+		return new ResponseEntity<>(msg, HttpStatus.CREATED);
 	}
 	
 	@GetMapping("/products")

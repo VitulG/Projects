@@ -37,7 +37,7 @@ public class ProductServiceDbImpl implements ProductService{
 	}
 
 	@Override
-	public Product createProduct(CreateProductDto createProductDto) {
+	public Long createProduct(CreateProductDto createProductDto) {
 		Product product = new Product();
 		product.setTitle(createProductDto.getProductTitle());
 		product.setPrice(createProductDto.getPrice());
@@ -52,8 +52,9 @@ public class ProductServiceDbImpl implements ProductService{
 			categoryFromDb = cr.save(category);
 		}
 		product.setCategory(categoryFromDb);
-		
-		return pr.save(product);
+		pr.save(product);
+
+        return product.getProductId();
 	}
 
 	@Override
