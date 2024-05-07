@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -23,7 +24,9 @@ public class Categories extends BaseModel{
 
 	private String title;
 	
-	@OneToMany(mappedBy = "category", cascade = {CascadeType.REMOVE})
+	@OneToMany(mappedBy = "category", cascade = {CascadeType.REMOVE}, fetch = FetchType.LAZY)
+	@Fetch(FetchMode.SELECT)
+	@BatchSize(size = 2)
 	@JsonIgnore
 	private List<Product> products;
 
