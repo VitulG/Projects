@@ -39,6 +39,7 @@ class BlackProjectApplicationTests {
 		System.out.println(categoryById.get().getTitle());
 	}
 
+    // N + 1 problem
 	@Test
 	@Transactional
 	void testingQuery3() {
