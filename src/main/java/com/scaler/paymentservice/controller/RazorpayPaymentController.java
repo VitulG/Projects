@@ -8,12 +8,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-public class PaymentController {
+public class RazorpayPaymentController {
 
     private PaymentService paymentService;
 
     @Autowired
-    public PaymentController(PaymentService paymentService) {
+    public RazorpayPaymentController(PaymentService paymentService) {
         this.paymentService = paymentService;
     }
 

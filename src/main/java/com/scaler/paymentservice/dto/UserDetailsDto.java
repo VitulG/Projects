@@ -18,4 +18,5 @@ public class UserDetailsDto {
     private Double amount;
     private Long phoneNumber;
     private String email;
+    private Long quantity;
 }

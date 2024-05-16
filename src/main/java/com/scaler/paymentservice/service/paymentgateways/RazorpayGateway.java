@@ -2,22 +2,12 @@ package com.scaler.paymentservice.service.paymentgateways;
 
 import com.razorpay.*;
 import com.scaler.paymentservice.dto.UserDetailsDto;
-import com.scaler.paymentservice.entity.User;
-import com.scaler.paymentservice.repository.UserRepository;
 import org.json.JSONObject;
 import com.razorpay.RazorpayClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class RazorpayGateway implements PaymentGateway {
-
-    private UserRepository userRepository;
-
-    @Autowired
-    public RazorpayGateway(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     @Override
     public String generatePaymentLink(UserDetailsDto userDetailsDto) {
@@ -57,18 +47,6 @@ public class RazorpayGateway implements PaymentGateway {
         }catch(Exception ex) {
             ex.printStackTrace();
         }
-
-        // saving the users details in user table
-        User user = new User();
-
-        user.setUserName(userDetailsDto.getUserName());
-        user.setOrderId(userDetailsDto.getOrderId());
-        user.setAmount(userDetailsDto.getAmount());
-        user.setPhoneNumber(userDetailsDto.getPhoneNumber());
-        user.setEmail(userDetailsDto.getEmail());
-
-        userRepository.save(user);
-
         return "";
     }
 }

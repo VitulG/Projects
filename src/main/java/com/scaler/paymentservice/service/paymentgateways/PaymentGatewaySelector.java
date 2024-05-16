@@ -17,6 +17,6 @@ public class PaymentGatewaySelector {
 
     public PaymentGateway getPaymentGateway() {
         // logic to choose the best payment gateway
-        return razorpayGateway;
+        return stripeGateway;
     }
 }

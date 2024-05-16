@@ -1,5 +1,7 @@
 package com.scaler.paymentservice.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -7,9 +9,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class RazorpayWebhookController {
 
-    @PostMapping("/razorpayWebhook")
-    public void paymentDone(@RequestBody Object object) {
-        System.out.println(object);
-        // update the payment db here you basically send the dto
+    @PostMapping("/razorpay/webhook")
+    public ResponseEntity<String> handleWebhookEvent(@RequestBody String payload) {
+        System.out.println(payload);
+        return new ResponseEntity<>("Received", HttpStatus.OK);
     }
 }
