@@ -1,6 +1,4 @@
-package com.scaler.project.dtos;
-
-import com.scaler.project.models.Categories;
+package com.scaler.project.dto;
 
 import lombok.Getter;
 import lombok.Setter;

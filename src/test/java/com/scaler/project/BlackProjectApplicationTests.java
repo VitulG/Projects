@@ -1,10 +1,9 @@
 package com.scaler.project;
 
-import com.scaler.project.models.Categories;
-import com.scaler.project.models.Product;
-import com.scaler.project.repositories.CategoriesRepository;
-import com.scaler.project.repositories.ProductRepository;
-import com.scaler.project.repositories.projections.ProductProjection;
+import com.scaler.project.model.Categories;
+import com.scaler.project.model.Product;
+import com.scaler.project.repository.CategoriesRepository;
+import com.scaler.project.repository.ProductRepository;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

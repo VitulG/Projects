@@ -4,17 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
-import com.scaler.project.dtos.CategoryDto;
-import com.scaler.project.dtos.CreateProductDto;
-import com.scaler.project.dtos.ProductDto;
-import com.scaler.project.models.Categories;
-import com.scaler.project.models.Product;
-import com.scaler.project.repositories.CategoriesRepository;
-import com.scaler.project.repositories.ProductRepository;
+import com.scaler.project.dto.CategoryDto;
+import com.scaler.project.dto.CreateProductDto;
+import com.scaler.project.dto.ProductDto;
+import com.scaler.project.model.Categories;
+import com.scaler.project.model.Product;
+import com.scaler.project.repository.CategoriesRepository;
+import com.scaler.project.repository.ProductRepository;
 
 @Service("SelfProductService")
 @Primary

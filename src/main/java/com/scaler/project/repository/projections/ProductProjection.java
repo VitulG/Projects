@@ -1,4 +1,4 @@
-package com.scaler.project.repositories.projections;
+package com.scaler.project.repository.projections;
 
 public interface ProductProjection {
     Long getId();

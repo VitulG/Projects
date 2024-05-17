@@ -1,4 +1,4 @@
-package com.scaler.project.models;
+package com.scaler.project.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -12,7 +12,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 public class Product extends BaseModel {
-
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long productId;

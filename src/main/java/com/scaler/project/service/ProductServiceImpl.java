@@ -3,23 +3,16 @@ package com.scaler.project.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RequestCallback;
-import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 
-import com.scaler.project.dtos.CategoryDto;
-import com.scaler.project.dtos.CreateProductDto;
-import com.scaler.project.dtos.ProductDto;
-import com.scaler.project.models.Categories;
-import com.scaler.project.models.Product;
+import com.scaler.project.dto.CategoryDto;
+import com.scaler.project.dto.CreateProductDto;
+import com.scaler.project.dto.ProductDto;
+import com.scaler.project.model.Product;
 
 @Service("fakeStoreService")
 public class ProductServiceImpl implements ProductService{

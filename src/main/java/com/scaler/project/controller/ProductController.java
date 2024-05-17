@@ -1,29 +1,22 @@
 package com.scaler.project.controller;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestParam;
 
-import com.scaler.project.dtos.CategoryDto;
-import com.scaler.project.dtos.CreateProductDto;
-import com.scaler.project.dtos.ProductDto;
-import com.scaler.project.models.Categories;
-import com.scaler.project.models.Product;
+import com.scaler.project.dto.CategoryDto;
+import com.scaler.project.dto.CreateProductDto;
+import com.scaler.project.dto.ProductDto;
+import com.scaler.project.model.Product;
 import com.scaler.project.service.ProductService;
 
 @RestController

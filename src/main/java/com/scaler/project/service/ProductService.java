@@ -2,11 +2,10 @@ package com.scaler.project.service;
 
 import java.util.List;
 
-import com.scaler.project.dtos.CategoryDto;
-import com.scaler.project.dtos.CreateProductDto;
-import com.scaler.project.dtos.ProductDto;
-import com.scaler.project.models.Categories;
-import com.scaler.project.models.Product;
+import com.scaler.project.dto.CategoryDto;
+import com.scaler.project.dto.CreateProductDto;
+import com.scaler.project.dto.ProductDto;
+import com.scaler.project.model.Product;
 
 public interface ProductService {
 	public Product getProductById(Long id);

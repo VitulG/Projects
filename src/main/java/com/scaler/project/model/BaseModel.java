@@ -1,4 +1,4 @@
-package com.scaler.project.models;
+package com.scaler.project.model;
 
 import java.util.Date;
 

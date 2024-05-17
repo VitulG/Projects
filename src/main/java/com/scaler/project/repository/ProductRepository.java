@@ -1,8 +1,8 @@
-package com.scaler.project.repositories;
+package com.scaler.project.repository;
 
-import com.scaler.project.models.Categories;
-import com.scaler.project.repositories.projections.ProductProjection;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.scaler.project.models.Product;
+import com.scaler.project.model.Product;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,4 +36,6 @@ public interface ProductRepository extends JpaRepository<Product, Long>{
     void updateBy(@Param("productId")  Long productId, @Param("title") String title, @Param("price") Double price,
                   @Param("description") String description, @Param("image") String image);
 
+    @Query("SELECT p FROM Product p JOIN p.category c WHERE c.title = :title")
+     Page<Product> findByTitleContaining(String title, Pageable pageable);
 }
