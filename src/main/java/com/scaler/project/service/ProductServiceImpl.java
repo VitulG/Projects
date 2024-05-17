@@ -1,7 +1,10 @@
 package com.scaler.project.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -117,4 +120,69 @@ public class ProductServiceImpl implements ProductService{
 		response.getBody().convertToProduct();
 		return "Items with id: "+id+" deleted successfully";
 	}
+
+	@Override
+	public List<Product> getProducts(int limit) {
+		ResponseEntity<ProductDto[]> response = rt.getForEntity(
+				"https://fakestoreapi.com/products?limit="+limit,
+				ProductDto[].class
+		);
+
+		if(response.getBody() == null) {
+			return List.of();
+		}
+
+		List<Product> products = new ArrayList<>();
+		for(ProductDto productDto : response.getBody()) {
+			products.add(productDto.convertToProduct());
+		}
+		return products;
+	}
+
+	@Override
+	public List<Product> sortProducts(String sortType) {
+		ResponseEntity<ProductDto[]> response = rt.getForEntity(
+				"https://fakestoreapi.com/products",
+				ProductDto[].class
+		);
+
+		if(response.getBody() == null) {
+			return List.of();
+		}
+
+		List<Product> products = new ArrayList<>();
+		for(ProductDto productDto : response.getBody()) {
+			products.add(productDto.convertToProduct());
+		}
+		if(sortType.equalsIgnoreCase("desc")) {
+			products.sort(Comparator.comparing(Product::getProductId).reversed());
+		}
+		return products;
+	}
+
+	@Override
+	public List<Product> getProductsWithLimitSort(int limit, String sortType) {
+		ResponseEntity<ProductDto[]> response = rt.getForEntity(
+				"https://fakestoreapi.com/products?limit="+limit,
+				ProductDto[].class
+		);
+
+		if(response.getBody() == null) {
+			return null;
+		}
+
+		List<Product> products = Arrays.stream(response.getBody())
+				.map(ProductDto::convertToProduct)
+				.collect(Collectors.toList());
+
+		for(ProductDto productDto : response.getBody()) {
+			products.add(productDto.convertToProduct());
+		}
+
+		if(sortType.equalsIgnoreCase("desc")) {
+			products.sort(Comparator.comparing(Product::getProductId).reversed());
+		}
+		return products;
+	}
+
 }

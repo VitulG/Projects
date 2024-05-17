@@ -100,4 +100,19 @@ public class ProductServiceDbImpl implements ProductService{
 		return  "Items with id: "+id+" deleted successfully";
 	}
 
+	@Override
+	public List<Product> getProducts(int limit) {
+		return List.of();
+	}
+
+	@Override
+	public List<Product> sortProducts(String sortType) {
+		return List.of();
+	}
+
+	@Override
+	public List<Product> getProductsWithLimitSort(int limit, String sortType) {
+		return List.of();
+	}
+
 }

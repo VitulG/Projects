@@ -5,13 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.scaler.project.dto.CategoryDto;
 import com.scaler.project.dto.CreateProductDto;
@@ -24,7 +18,7 @@ public class ProductController {
 	
 	private ProductService ps;
 
-	public ProductController(@Qualifier("SelfProductService") ProductService ps) {
+	public ProductController(@Qualifier("fakeStoreService") ProductService ps) {
 		this.ps = ps;
 	}
 
@@ -85,5 +79,32 @@ public class ProductController {
 	public ResponseEntity<String> deleteProduct(@PathVariable("id") Long id) {
 		String msg = ps.deleteProduct(id);
 		return new ResponseEntity<>(msg, HttpStatus.OK);
+	}
+
+	// to limit the result
+	@RequestMapping(value = "/products/limit", method = RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity<List<Product>> limitProducts(@RequestParam(defaultValue="3")
+														   int limit) {
+		List<Product> productListWithLimit = ps.getProducts(limit);
+		return new ResponseEntity<>(productListWithLimit, HttpStatus.OK);
+	}
+
+	// to sort the products
+	@GetMapping("/products/sort")
+	@ResponseBody
+	public ResponseEntity<List<Product>> sortProducts(@RequestParam(defaultValue = "asc")
+													  String sortType) {
+		List<Product> sortedProducts = ps.sortProducts(sortType);
+		return new ResponseEntity<>(sortedProducts, HttpStatus.OK);
+	}
+
+	// get products with limit and sort based
+	@GetMapping("/products/limit-sort")
+	@ResponseBody
+	public ResponseEntity<List<Product>> productsWithLimitAndSort(@RequestParam(defaultValue = "3") int limit,
+																  @RequestParam(defaultValue = "asc") String sortType) {
+		List<Product> products = ps.getProductsWithLimitSort(limit, sortType);
+		return new ResponseEntity<>(products, HttpStatus.OK);
 	}
 }

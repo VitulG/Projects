@@ -15,4 +15,7 @@ public interface ProductService {
 	public List<Product> getProductsByCategory(String category);
 	public void updateProduct(Long id, ProductDto product);
 	public String deleteProduct(Long id);
+	public List<Product> getProducts(int limit);
+	public List<Product> sortProducts(String sortType);
+	public List<Product> getProductsWithLimitSort(int limit, String sortType);
 }
