@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -21,18 +22,32 @@ import com.scaler.project.model.Product;
 public class ProductServiceImpl implements ProductService{
 	
 	private RestTemplate rt;
+	private RedisTemplate<String, Object> redisTemplate;
 	
-	public ProductServiceImpl(RestTemplate rt) {
+	public ProductServiceImpl(RestTemplate rt,
+							  RedisTemplate<String, Object> redisTemplate) {
 		this.rt = rt;
+		this.redisTemplate = redisTemplate;
 	}
 
 	@Override
 	public Product getProductById(Long id) {
+
+		Product existingProduct = (Product) redisTemplate.opsForValue().get(String.valueOf(id));
+		if(existingProduct != null) {
+			return existingProduct;
+		}
+
 		ResponseEntity<ProductDto> response = rt.getForEntity("https://fakestoreapi.com/products/"+id, 
 				ProductDto.class);
 		
 		ProductDto receiveDto = response.getBody();
-		return receiveDto.convertToProduct();
+
+		Product finalProduct = receiveDto.convertToProduct();
+
+		redisTemplate.opsForValue().set(String.valueOf(id), finalProduct);
+
+		return finalProduct;
 	}
 
 	@Override
