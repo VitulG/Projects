@@ -17,6 +17,5 @@ import java.util.Date;
 public class BaseModel {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private LocalDateTime activatedAt;
     private boolean isDeleted;
 }

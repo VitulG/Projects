@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -28,4 +29,15 @@ public class User extends BaseModel{
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<Token> userTokens;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private List<Post> userPosts;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private List<Like> userLikes;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private List<Comment> userComments;
+
+
 }

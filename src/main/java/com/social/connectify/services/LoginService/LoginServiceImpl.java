@@ -57,7 +57,6 @@ public class LoginServiceImpl implements LoginService {
             }
 
             user.setDeleted(false);
-            user.setActivatedAt(LocalDateTime.now());
             userRepository.save(user);
             return "user re-activated successfully";
         }
