@@ -41,6 +41,8 @@ public class Post extends BaseModel {
     @OneToMany(cascade = CascadeType.REMOVE, mappedBy="post")
     private List<Video> videos;
 
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    private Group group;
 
 
     public PostResponseDto convertToPostResponseDto() {

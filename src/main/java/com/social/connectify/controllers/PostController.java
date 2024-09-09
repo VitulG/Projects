@@ -98,7 +98,7 @@ public class PostController {
         }
     }
 
-    @GetMapping("/like-user/{postId}")
+    @GetMapping("/post-likes/{postId}")
     public ResponseEntity<List<LikedPostUserDto>> getUserWhoLikedPost(@RequestHeader("Authorization") String token,
                                                                       @PathVariable("postId") Long postId) {
         try {
