@@ -14,7 +14,7 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "social_group")
+@Table(name = "connectify_group")
 public class Group extends BaseModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
