@@ -33,4 +33,7 @@ public class Group extends BaseModel {
 
     @OneToMany(mappedBy = "group", cascade = CascadeType.REMOVE)
     private List<Post> posts;
+
+    @ManyToMany(mappedBy = "groups")
+    private Set<Message> messages;
 }

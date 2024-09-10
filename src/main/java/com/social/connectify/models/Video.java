@@ -18,6 +18,9 @@ public class Video extends BaseModel {
 
     private String videoLink;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.PERSIST, optional = true)
     private Post post;
+
+    @ManyToOne(cascade = CascadeType.PERSIST, optional = true)
+    private Message message;
 }

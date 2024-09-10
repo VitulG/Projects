@@ -48,6 +48,22 @@ public class User extends BaseModel{
     private Set<User> userFriends;
 
     @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @JoinTable(
+            name = "user_groups",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "group_id")
+    )
     private Set<Group> userGroups;
+
+    @OneToMany(mappedBy = "sender", cascade = CascadeType.REMOVE)
+    private List<Message> sentMessages;
+
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @JoinTable(
+            name = "user_received_messages",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "message_id")
+    )
+    private List<Message> receivedMessages;
 
 }
