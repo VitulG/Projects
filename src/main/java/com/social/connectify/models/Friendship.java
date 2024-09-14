@@ -1,5 +1,6 @@
 package com.social.connectify.models;
 
+import com.social.connectify.dto.FriendshipDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,4 +30,12 @@ public class Friendship extends BaseModel {
 
     private LocalDateTime requestSentDate;
     private LocalDateTime requestAcceptedDate;
+
+    public FriendshipDto convertToFriendshipDto() {
+        FriendshipDto friendshipDto = new FriendshipDto();
+        friendshipDto.setFriendFirstName(user.getFirstName());
+        friendshipDto.setFriendLastName(user.getLastName());
+
+        return friendshipDto;
+    }
 }

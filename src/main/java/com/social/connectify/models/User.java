@@ -72,4 +72,7 @@ public class User extends BaseModel{
     @OneToMany(mappedBy = "friend", cascade = CascadeType.ALL)
     private Set<Friendship> friendshipsReceived;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Notification> notifications;
+
 }

@@ -9,9 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class FriendRequestDto {
-    private String firstName;
-    private String lastName;
-    private String email;
-    private String requestAction;
+public class FriendshipDto {
+    private String friendFirstName;
+    private String friendLastName;
 }
