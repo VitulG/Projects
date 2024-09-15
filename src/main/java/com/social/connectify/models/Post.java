@@ -1,5 +1,6 @@
 package com.social.connectify.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.social.connectify.dto.PostResponseDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,7 @@ public class Post extends BaseModel {
     private Long postId;
 
     @ManyToOne(cascade = CascadeType.PERSIST)
+    @JsonIgnore
     private User user;
 
     private String content;
@@ -42,6 +44,7 @@ public class Post extends BaseModel {
     private List<Video> videos;
 
     @ManyToOne(cascade = CascadeType.PERSIST)
+    @JsonIgnore
     private Group group;
 
 

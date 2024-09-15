@@ -23,11 +23,12 @@ public class PostServiceImpl implements PostService {
     private final VideoRepository videoRepository;
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
+    private final NotificationRepository notificationRepository;
 
     @Autowired
     public PostServiceImpl(TokenRepository tokenRepository, ImageRepository imageRepository, UserRepository userRepository,
                            PostRepository postRepository, VideoRepository videoRepository, LikeRepository likeRepository,
-                           CommentRepository commentRepository) {
+                           NotificationRepository notificationRepository, CommentRepository commentRepository) {
         this.imageRepository = imageRepository;
         this.tokenRepository = tokenRepository;
         this.postRepository = postRepository;
@@ -35,6 +36,7 @@ public class PostServiceImpl implements PostService {
         this.videoRepository = videoRepository;
         this.likeRepository = likeRepository;
         this.commentRepository = commentRepository;
+        this.notificationRepository = notificationRepository;
     }
 
     @Override
@@ -42,8 +44,8 @@ public class PostServiceImpl implements PostService {
     public String createPost(String token, CreatePostRequestDto createPostRequestDto) throws InvalidTokenException, PostCreationException {
         User user = validateToken(token);
 
-        if(createPostRequestDto.getImageUrl() == null && createPostRequestDto.getImageUrl() == null
-                && createPostRequestDto.getContent() == null) {
+        if(createPostRequestDto.getImageUrl() == null && createPostRequestDto.getImageUrl().isEmpty()
+                && createPostRequestDto.getContent() == null || createPostRequestDto.getContent().isEmpty()) {
             throw new PostCreationException("Unable to post because content is null");
         }
 
@@ -84,8 +86,15 @@ public class PostServiceImpl implements PostService {
         user.getUserPosts().add(post);
         userRepository.save(user);
 
+        for(User friend : user.getUserFriends()) {
+            Notification notification = new Notification();
+            notification.setStatus(NotificationStatus.UNREAD);
+            notification.setCreatedAt(LocalDateTime.now());
+            notification.setMessage(user.getFirstName()+" "+user.getLastName()+" added a new post");
+            notification.setUser(friend);
+            notificationRepository.save(notification);
+        }
         postRepository.save(post);
-
         return "posted successfully";
     }
 
@@ -143,10 +152,9 @@ public class PostServiceImpl implements PostService {
         if(post.getNumberOfLikes() == null) {
             post.setNumberOfLikes(0L);
         }
-
         post.setNumberOfLikes(post.getNumberOfLikes() + 1);
         postRepository.save(post);
-
+        createNotification(user, postId, NotificationType.LIKE);
         return "post liked";
     }
 
@@ -185,6 +193,8 @@ public class PostServiceImpl implements PostService {
         post.setNumberOfComments(post.getNumberOfComments()+1);
         postRepository.save(post);
 
+        createNotification(user, postId, NotificationType.COMMENT);
+
         return "commented on the post";
     }
 
@@ -208,6 +218,7 @@ public class PostServiceImpl implements PostService {
         }
         post.setNumberOfTimesPostShared(post.getNumberOfTimesPostShared() + 1);
         postRepository.save(post);
+        createNotification(user, postId, NotificationType.SHARE);
         return "post shared";
     }
 
@@ -418,5 +429,31 @@ public class PostServiceImpl implements PostService {
             throw new InvalidTokenException("Token is either expired, deleted, or inactive");
         }
         return existingToken.getUser();
+    }
+
+    private void createNotification(User user, Long postId, NotificationType type) throws PostNotFoundException {
+        Optional<Post> postOwnerOptional = postRepository.findById(postId);
+
+        if(postOwnerOptional.isEmpty()) {
+            throw new PostNotFoundException("no post available");
+        }
+
+        User postOwner = postOwnerOptional.get().getUser();
+
+        if(!postOwner.getEmail().equals(user.getEmail())) {
+            Notification notification = new Notification();
+
+            notification.setCreatedAt(LocalDateTime.now());
+            notification.setStatus(NotificationStatus.UNREAD);
+            notification.setUser(postOwner);
+            if(type == NotificationType.LIKE) {
+                notification.setMessage(user.getFirstName()+" "+user.getLastName()+" liked your post");
+            }else if(type == NotificationType.COMMENT) {
+                notification.setMessage(user.getFirstName()+" "+user.getLastName()+" commented on your post");
+            }else if(type == NotificationType.SHARE) {
+                notification.setMessage(user.getFirstName()+" "+user.getLastName()+" shared your post");
+            }
+            notificationRepository.save(notification);
+        }
     }
 }

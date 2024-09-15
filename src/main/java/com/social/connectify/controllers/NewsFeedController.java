@@ -19,7 +19,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/newsFeed")
 public class NewsFeedController {
-    // TODO: Implement news feed functionality
     private final NewsFeedService newsFeedService;
 
     @Autowired

@@ -1,5 +1,6 @@
 package com.social.connectify.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.social.connectify.dto.FriendshipDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -20,9 +21,11 @@ public class Friendship extends BaseModel {
     private Long friendshipId;
 
     @ManyToOne(cascade = CascadeType.PERSIST)
+    @JsonIgnore
     private User user;
 
     @ManyToOne(cascade = CascadeType.PERSIST)
+    @JsonIgnore
     private User friend;
 
     @Enumerated(EnumType.STRING)

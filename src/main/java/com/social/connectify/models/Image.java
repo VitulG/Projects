@@ -1,5 +1,6 @@
 package com.social.connectify.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,8 +20,10 @@ public class Image extends BaseModel{
     private String imageUrl;
 
     @ManyToOne(cascade = CascadeType.PERSIST, optional = true)
+    @JsonIgnore
     private Post post;
 
     @ManyToOne(cascade = CascadeType.PERSIST, optional = true)
+    @JsonIgnore
     private Message message;
 }

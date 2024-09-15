@@ -1,5 +1,6 @@
 package com.social.connectify.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,9 +20,11 @@ public class Comment extends BaseModel{
     private String content;
 
     @ManyToOne(cascade = CascadeType.REMOVE)
+    @JsonIgnore
     private Post post;
 
     @ManyToOne(cascade = CascadeType.PERSIST)
+    @JsonIgnore
     private User user;
 
 }

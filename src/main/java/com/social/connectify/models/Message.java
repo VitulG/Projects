@@ -1,5 +1,6 @@
 package com.social.connectify.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,9 +22,11 @@ public class Message extends BaseModel {
     private boolean isRead;
 
     @ManyToOne(cascade = CascadeType.ALL)
+    @JsonIgnore
     private User sender;
 
     @ManyToMany(cascade = CascadeType.PERSIST)
+    @JsonIgnore
     private List<User> receivers;
 
     // optional attachments
