@@ -16,7 +16,7 @@ import java.util.List;
 public class SendMessageRequestDto {
     private String message;
     private String recipientEmailId;
-    private String groupName;
+    private List<String> groups;
     private String imageUrl;
     private String videoUrl;
 }

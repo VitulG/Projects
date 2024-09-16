@@ -19,9 +19,11 @@ public class Message extends BaseModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long messageId;
     private String content;
-    private boolean isRead;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @Enumerated(EnumType.STRING)
+    private MessageStatus messageStatus;
+
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JsonIgnore
     private User sender;
 

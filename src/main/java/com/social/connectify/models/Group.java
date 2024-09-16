@@ -20,7 +20,9 @@ public class Group extends BaseModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long groupId;
 
+    @Column(unique = true)
     private String groupName;
+
     private String groupDescription;
 
     @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})

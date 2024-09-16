@@ -5,10 +5,7 @@ import com.social.connectify.exceptions.GroupNotFoundException;
 import com.social.connectify.exceptions.InvalidTokenException;
 import com.social.connectify.exceptions.UserNotFoundException;
 import com.social.connectify.models.*;
-import com.social.connectify.repositories.GroupRepository;
-import com.social.connectify.repositories.MessageRepository;
-import com.social.connectify.repositories.TokenRepository;
-import com.social.connectify.repositories.UserRepository;
+import com.social.connectify.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,14 +19,19 @@ public class MessageServiceImpl implements MessageService {
     private final UserRepository userRepository;
     private final MessageRepository messageRepository;
     private final GroupRepository groupRepository;
+    private final ImageRepository imageRepository;
+    private final VideoRepository videoRepository;
 
     @Autowired
     public MessageServiceImpl(TokenRepository tokenRepository, UserRepository userRepository,
-                              MessageRepository messageRepository, GroupRepository groupRepository) {
+                              MessageRepository messageRepository, GroupRepository groupRepository, ImageRepository imageRepository,
+                              VideoRepository videoRepository) {
         this.tokenRepository = tokenRepository;
         this.userRepository = userRepository;
         this.messageRepository = messageRepository;
         this.groupRepository = groupRepository;
+        this.imageRepository = imageRepository;
+        this.videoRepository = videoRepository;
     }
 
     @Override
@@ -40,8 +42,20 @@ public class MessageServiceImpl implements MessageService {
 
         Message message = createMessage(sender, recipientUser, sendMessageRequestDto);
 
-        messageRepository.save(message);
+        if(sender.getSentMessages() == null) {
+            sender.setSentMessages(new ArrayList<>());
+        }
+        sender.getSentMessages().add(message);
+
+        if(recipientUser.getReceivedMessages() == null) {
+            recipientUser.setReceivedMessages(new ArrayList<>());
+        }
+        recipientUser.getReceivedMessages().add(message);
+
+        userRepository.save(sender);
         userRepository.save(recipientUser);
+
+        messageRepository.save(message);
         return "message sent";
     }
 
@@ -71,16 +85,27 @@ public class MessageServiceImpl implements MessageService {
 
     private Message createMessage(User sender, User recipient, SendMessageRequestDto sendMessageRequestDto) throws GroupNotFoundException {
         Message message = new Message();
+
         message.setContent(sendMessageRequestDto.getMessage());
-        message.setRead(false);
+        message.setMessageStatus(MessageStatus.SENT);
         message.setCreatedAt(LocalDateTime.now());
 
         message.setSender(sender);
+
+        if(sender.getSentMessages() == null) {
+            sender.setSentMessages(new ArrayList<>());
+        }
+        sender.getSentMessages().add(message);
 
         if(message.getReceivers() == null) {
             message.setReceivers(new ArrayList<>());
         }
         message.getReceivers().add(recipient);
+
+        if(recipient.getReceivedMessages() == null) {
+            recipient.setReceivedMessages(new ArrayList<>());
+        }
+        recipient.getReceivedMessages().add(message);
 
         // Handle Images
         if(sendMessageRequestDto.getImageUrl() != null) {
@@ -91,6 +116,7 @@ public class MessageServiceImpl implements MessageService {
                 message.setImages(new ArrayList<>());
             }
             message.getImages().add(image);
+            imageRepository.save(image);
         }
 
         // Handle Videos
@@ -102,18 +128,22 @@ public class MessageServiceImpl implements MessageService {
                 message.setVideos(new ArrayList<>());
             }
             message.getVideos().add(video);
+            videoRepository.save(video);
         }
 
         // Handle Groups
-        if(sendMessageRequestDto.getGroupName() != null) {
-            Optional<Group> recipientGroup = groupRepository.findByGroupName(sendMessageRequestDto.getGroupName());
-            if(recipientGroup.isEmpty()) {
-                throw new GroupNotFoundException("Group not found");
+        if(sendMessageRequestDto.getGroups() != null) {
+            for(String group : sendMessageRequestDto.getGroups()) {
+                Optional<Group> recipientGroup = groupRepository.findByGroupName(group);
+                if(recipientGroup.isEmpty()) {
+                    throw new GroupNotFoundException("Group not found");
+                }
+                if(message.getGroups() == null) {
+                    message.setGroups(new ArrayList<>());
+                }
+                message.getGroups().add(recipientGroup.get());
+                groupRepository.save(recipientGroup.get());
             }
-            if(message.getGroups() == null) {
-                message.setGroups(new ArrayList<>());
-            }
-            message.getGroups().add(recipientGroup.get());
         }
         return message;
     }
