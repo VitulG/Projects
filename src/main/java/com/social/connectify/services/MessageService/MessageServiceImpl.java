@@ -1,8 +1,11 @@
 package com.social.connectify.services.MessageService;
 
+import com.social.connectify.dto.ReceivedMessageDto;
 import com.social.connectify.dto.SendMessageRequestDto;
+import com.social.connectify.dto.SentMessageDto;
 import com.social.connectify.exceptions.GroupNotFoundException;
 import com.social.connectify.exceptions.InvalidTokenException;
+import com.social.connectify.exceptions.MessageNotFoundException;
 import com.social.connectify.exceptions.UserNotFoundException;
 import com.social.connectify.models.*;
 import com.social.connectify.repositories.*;
@@ -11,7 +14,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class MessageServiceImpl implements MessageService {
@@ -52,11 +57,82 @@ public class MessageServiceImpl implements MessageService {
         }
         recipientUser.getReceivedMessages().add(message);
 
-        userRepository.save(sender);
-        userRepository.save(recipientUser);
-
         messageRepository.save(message);
         return "message sent";
+    }
+
+    @Override
+    public List<SentMessageDto> getSentMessages(String token) throws InvalidTokenException, MessageNotFoundException {
+        User user = validateTokenAndGetUser(token);
+
+        List<Message> sentMessages = user.getSentMessages();
+
+        if(sentMessages == null) {
+            throw new MessageNotFoundException("Messages not available at this time");
+        }
+
+        List<SentMessageDto> sentMessagesDto = new ArrayList<>();
+
+        for(Message message : sentMessages) {
+            SentMessageDto messageDto = new SentMessageDto();
+            messageDto.setMessage(message.getContent());
+            List<String> recipientsOfAMessage = new ArrayList<>();
+            for(User recipient : message.getReceivers()) {
+                recipientsOfAMessage.add(recipient.getFirstName()+" "+recipient.getLastName());
+            }
+            messageDto.setRecipients(recipientsOfAMessage);
+            sentMessagesDto.add(messageDto);
+        }
+        return sentMessagesDto;
+    }
+
+    @Override
+    public void readMessage(Long messageId, String token) throws InvalidTokenException, MessageNotFoundException {
+        User user = validateTokenAndGetUser(token);
+
+        Optional<Message> optionalMessage = messageRepository.findById(messageId);
+
+        if(optionalMessage.isEmpty()) {
+            throw new MessageNotFoundException("Message not available");
+        }
+
+        Message message = optionalMessage.get();
+        List<User> messageReceivers = message.getReceivers();
+
+        // Use Java 8 Streams for checking if the user is one of the recipients
+        boolean isUserPresent = messageReceivers.stream()
+                .anyMatch(receiver -> receiver.getEmail().equals(user.getEmail()));
+
+        if(!isUserPresent) {
+            throw new MessageNotFoundException("Message not available to this user");
+        }
+
+        // Update the status only if it isn't already read
+        if (message.getMessageStatus() != MessageStatus.READ) {
+            message.setMessageStatus(MessageStatus.READ);
+            messageRepository.save(message);
+        }
+    }
+
+    @Override
+    public List<ReceivedMessageDto> getReceivedMessages(String token) throws InvalidTokenException, MessageNotFoundException {
+        User user = validateTokenAndGetUser(token);
+
+        List<Message> receivedMessages = user.getReceivedMessages();
+
+        if(receivedMessages == null) {
+            throw new MessageNotFoundException("Messages not available at this time");
+        }
+
+        // Convert messages to DTOs
+        return receivedMessages.stream()
+                .map(message -> {
+                    ReceivedMessageDto messageDto = new ReceivedMessageDto();
+                    messageDto.setMessage(message.getContent());
+                    messageDto.setSender(message.getSender().getFirstName() + " " + message.getSender().getLastName());
+                    return messageDto;
+                })
+                .collect(Collectors.toList());
     }
 
     private User validateTokenAndGetUser(String token) throws InvalidTokenException {

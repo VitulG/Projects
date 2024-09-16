@@ -44,4 +44,5 @@ public class Message extends BaseModel {
             inverseJoinColumns = @JoinColumn(name = "group_id")
     )
     private List<Group> groups;
+
 }
