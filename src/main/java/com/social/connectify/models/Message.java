@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -29,7 +30,7 @@ public class Message extends BaseModel {
 
     @ManyToMany(cascade = CascadeType.PERSIST)
     @JsonIgnore
-    private List<User> receivers;
+    private Set<User> receivers;
 
     // optional attachments
     @OneToMany(mappedBy = "message", cascade = CascadeType.REMOVE)

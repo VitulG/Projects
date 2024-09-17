@@ -1,12 +1,10 @@
 package com.social.connectify.controllers;
 
+import com.social.connectify.dto.GroupMessageDto;
 import com.social.connectify.dto.ReceivedMessageDto;
 import com.social.connectify.dto.SendMessageRequestDto;
 import com.social.connectify.dto.SentMessageDto;
-import com.social.connectify.exceptions.GroupNotFoundException;
-import com.social.connectify.exceptions.InvalidTokenException;
-import com.social.connectify.exceptions.MessageNotFoundException;
-import com.social.connectify.exceptions.UserNotFoundException;
+import com.social.connectify.exceptions.*;
 import com.social.connectify.services.MessageService.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -80,6 +78,38 @@ public class MessageController {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         } catch (MessageNotFoundException messageNotFoundException) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/get-group-messages/{groupId}")
+    public ResponseEntity<List<GroupMessageDto>> getMessagesFromAGroup(@RequestHeader("Authorization") String token,
+                                                                       @PathVariable("groupId") Long groupId) {
+        try {
+            List<GroupMessageDto> groupMessages = messageService.getMessagesFromAGroup(token, groupId);
+            return ResponseEntity.ok(groupMessages);
+        } catch(InvalidTokenException invalidTokenException) {
+            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.UNAUTHORIZED);
+        } catch(GroupNotFoundException groupNotFoundException) {
+            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.NOT_FOUND);
+        } catch(UserNotInGroupException userNotInGroupException) {
+            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.FORBIDDEN);
+        } catch(Exception e) {
+            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/delete-message/{messageId}")
+    public ResponseEntity<String> deleteMessage(@RequestHeader("Authorization") String token,
+                                            @PathVariable("messageId") Long messageId) {
+        try {
+            String response = messageService.deleteMessage(token, messageId);
+            return ResponseEntity.ok(response);
+        }catch(InvalidTokenException | UnauthorizedUserException invalidTokenException) {
+            return new ResponseEntity<>(invalidTokenException.getMessage(), HttpStatus.UNAUTHORIZED);
+        } catch(MessageNotFoundException messageNotFoundException) {
+            return new ResponseEntity<>(messageNotFoundException.getMessage(), HttpStatus.NOT_FOUND);
+        }catch (Exception ex ) {
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

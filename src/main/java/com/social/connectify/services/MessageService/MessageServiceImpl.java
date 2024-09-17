@@ -1,21 +1,18 @@
 package com.social.connectify.services.MessageService;
 
+import com.social.connectify.dto.GroupMessageDto;
 import com.social.connectify.dto.ReceivedMessageDto;
 import com.social.connectify.dto.SendMessageRequestDto;
 import com.social.connectify.dto.SentMessageDto;
-import com.social.connectify.exceptions.GroupNotFoundException;
-import com.social.connectify.exceptions.InvalidTokenException;
-import com.social.connectify.exceptions.MessageNotFoundException;
-import com.social.connectify.exceptions.UserNotFoundException;
+import com.social.connectify.exceptions.*;
 import com.social.connectify.models.*;
 import com.social.connectify.repositories.*;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,6 +37,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    @Transactional
     public String sendMessage(SendMessageRequestDto sendMessageRequestDto, String token)
             throws InvalidTokenException, UserNotFoundException, GroupNotFoundException {
         User sender = validateTokenAndGetUser(token);
@@ -62,6 +60,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    @Transactional
     public List<SentMessageDto> getSentMessages(String token) throws InvalidTokenException, MessageNotFoundException {
         User user = validateTokenAndGetUser(token);
 
@@ -74,19 +73,22 @@ public class MessageServiceImpl implements MessageService {
         List<SentMessageDto> sentMessagesDto = new ArrayList<>();
 
         for(Message message : sentMessages) {
-            SentMessageDto messageDto = new SentMessageDto();
-            messageDto.setMessage(message.getContent());
-            List<String> recipientsOfAMessage = new ArrayList<>();
-            for(User recipient : message.getReceivers()) {
-                recipientsOfAMessage.add(recipient.getFirstName()+" "+recipient.getLastName());
+            if(message.getMessageStatus() != MessageStatus.DELETED) {
+                SentMessageDto messageDto = new SentMessageDto();
+                messageDto.setMessage(message.getContent());
+                List<String> recipientsOfAMessage = new ArrayList<>();
+                for(User recipient : message.getReceivers()) {
+                    recipientsOfAMessage.add(recipient.getFirstName()+" "+recipient.getLastName());
+                }
+                messageDto.setRecipients(recipientsOfAMessage);
+                sentMessagesDto.add(messageDto);
             }
-            messageDto.setRecipients(recipientsOfAMessage);
-            sentMessagesDto.add(messageDto);
         }
         return sentMessagesDto;
     }
 
     @Override
+    @Transactional
     public void readMessage(Long messageId, String token) throws InvalidTokenException, MessageNotFoundException {
         User user = validateTokenAndGetUser(token);
 
@@ -97,7 +99,7 @@ public class MessageServiceImpl implements MessageService {
         }
 
         Message message = optionalMessage.get();
-        List<User> messageReceivers = message.getReceivers();
+        Set<User> messageReceivers = message.getReceivers();
 
         // Use Java 8 Streams for checking if the user is one of the recipients
         boolean isUserPresent = messageReceivers.stream()
@@ -108,13 +110,15 @@ public class MessageServiceImpl implements MessageService {
         }
 
         // Update the status only if it isn't already read
-        if (message.getMessageStatus() != MessageStatus.READ) {
+        if (message.getMessageStatus() != MessageStatus.DELETED &&
+                message.getMessageStatus() != MessageStatus.READ) {
             message.setMessageStatus(MessageStatus.READ);
             messageRepository.save(message);
         }
     }
 
     @Override
+    @Transactional
     public List<ReceivedMessageDto> getReceivedMessages(String token) throws InvalidTokenException, MessageNotFoundException {
         User user = validateTokenAndGetUser(token);
 
@@ -125,7 +129,8 @@ public class MessageServiceImpl implements MessageService {
         }
 
         // Convert messages to DTOs
-        return receivedMessages.stream()
+        return receivedMessages.stream().
+                filter(message -> message.getMessageStatus() != MessageStatus.DELETED)
                 .map(message -> {
                     ReceivedMessageDto messageDto = new ReceivedMessageDto();
                     messageDto.setMessage(message.getContent());
@@ -133,6 +138,56 @@ public class MessageServiceImpl implements MessageService {
                     return messageDto;
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public List<GroupMessageDto> getMessagesFromAGroup(String token, Long groupId) throws InvalidTokenException, GroupNotFoundException, UserNotInGroupException {
+        User user = validateTokenAndGetUser(token);
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new GroupNotFoundException("Group not found"));
+
+        if(!user.getUserGroups().contains(group)) {
+            throw new UserNotInGroupException("User is not a member of the group");
+        }
+
+        List<GroupMessageDto> groupMessagesDto = new ArrayList<GroupMessageDto>();
+
+        for(Message message : group.getMessages()) {
+            if(message.getMessageStatus() != MessageStatus.DELETED) {
+                GroupMessageDto messageDto = new GroupMessageDto();
+                messageDto.setMessage(message.getContent());
+                messageDto.setOwner(message.getSender().getFirstName()+" "+message.getSender().getLastName());
+                messageDto.setImages(new ArrayList<>());
+                messageDto.setVideos(new ArrayList<>());
+                for(Image image : message.getImages()) {
+                    messageDto.getImages().add(image.getImageUrl());
+                }
+                for(Video video : message.getVideos()) {
+                    messageDto.getVideos().add(video.getVideoLink());
+                }
+                groupMessagesDto.add(messageDto);
+            }
+        }
+        return groupMessagesDto;
+    }
+
+    @Override
+    @Transactional
+    public String deleteMessage(String token, Long messageId) throws InvalidTokenException, MessageNotFoundException, UnauthorizedUserException {
+        User user = validateTokenAndGetUser(token);
+
+        Message message = messageRepository.findById(messageId).
+                orElseThrow(() -> new MessageNotFoundException("message is not available"));
+
+        if (!message.getSender().equals(user) && !message.getReceivers().contains(user)) {
+            throw new UnauthorizedUserException("You do not have permission to delete this message");
+        }
+
+        message.setMessageStatus(MessageStatus.DELETED);
+        message.setDeleted(true);
+        messageRepository.save(message);
+        return "message deleted";
     }
 
     private User validateTokenAndGetUser(String token) throws InvalidTokenException {
@@ -174,7 +229,7 @@ public class MessageServiceImpl implements MessageService {
         sender.getSentMessages().add(message);
 
         if(message.getReceivers() == null) {
-            message.setReceivers(new ArrayList<>());
+            message.setReceivers(new HashSet<>());
         }
         message.getReceivers().add(recipient);
 

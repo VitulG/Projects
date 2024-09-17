@@ -1,6 +1,7 @@
 package com.social.connectify.advice;
 
 import com.social.connectify.exceptions.GroupNotFoundException;
+import com.social.connectify.exceptions.UserNotInGroupException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -12,6 +13,11 @@ public class GroupAdvice {
     @ExceptionHandler(GroupNotFoundException.class)
     public ResponseEntity<String> handleGroupNotFoundException(GroupNotFoundException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(UserNotInGroupException.class)
+    public ResponseEntity<String> handleUserNotInGroupException(UserNotInGroupException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(Exception.class)
