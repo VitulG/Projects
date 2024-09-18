@@ -1,6 +1,7 @@
 package com.social.connectify.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.social.connectify.dto.NotificationDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,4 +28,11 @@ public class Notification extends BaseModel {
 
     @Enumerated(EnumType.STRING)
     private NotificationStatus status;
+
+    public NotificationDto convertToDto() {
+        NotificationDto notificationDto = new NotificationDto();
+        notificationDto.setNotice(message);
+        notificationDto.setNotice(status.toString());
+        return notificationDto;
+    }
 }
