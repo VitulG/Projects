@@ -31,8 +31,8 @@ public class Notification extends BaseModel {
 
     public NotificationDto convertToDto() {
         NotificationDto notificationDto = new NotificationDto();
-        notificationDto.setNotice(message);
-        notificationDto.setNotice(status.toString());
+        notificationDto.setNotice(this.message);
+        notificationDto.setStatus(status.toString().toLowerCase());
         return notificationDto;
     }
 }
