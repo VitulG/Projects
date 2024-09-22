@@ -1,5 +1,6 @@
 package com.social.connectify.advice;
 
+import com.social.connectify.exceptions.FollowersNotFoundException;
 import com.social.connectify.exceptions.UserAlreadyFollowingException;
 import com.social.connectify.exceptions.UserNotFollowingException;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,11 @@ public class FollowerAdvice {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleException() {
         return new ResponseEntity<>("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(FollowersNotFoundException.class)
+    public ResponseEntity<String> handleFollowersNotFoundException() {
+        return new ResponseEntity<>("Followers not found", HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(UserNotFollowingException.class)

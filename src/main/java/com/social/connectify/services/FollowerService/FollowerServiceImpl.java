@@ -1,9 +1,9 @@
 package com.social.connectify.services.FollowerService;
 
-import com.social.connectify.exceptions.InvalidTokenException;
-import com.social.connectify.exceptions.UserAlreadyFollowingException;
-import com.social.connectify.exceptions.UserNotFollowingException;
-import com.social.connectify.exceptions.UserNotFoundException;
+import com.social.connectify.dto.FollowersDto;
+import com.social.connectify.dto.FollowingDto;
+import com.social.connectify.dto.MutualFollowersDto;
+import com.social.connectify.exceptions.*;
 import com.social.connectify.models.*;
 import com.social.connectify.repositories.NotificationRepository;
 import com.social.connectify.repositories.TokenRepository;
@@ -13,8 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class FollowerServiceImpl implements FollowerService {
@@ -66,6 +66,7 @@ public class FollowerServiceImpl implements FollowerService {
     }
 
     @Override
+    @Transactional
     public void unfollowUser(String token, String userEmail) throws InvalidTokenException, UserNotFoundException, UserNotFollowingException {
         User user = validateAndGetUser(token);
         Optional<User> optionalFollowing = userRepository.findUserByEmail(userEmail);
@@ -85,6 +86,75 @@ public class FollowerServiceImpl implements FollowerService {
 
         userRepository.save(user);
         userRepository.save(following);
+    }
+
+    @Override
+    @Transactional
+    public List<FollowersDto> getAllFollowers(String token) throws InvalidTokenException, FollowersNotFoundException {
+        User user = validateAndGetUser(token);
+
+        Set<User> userFollowers = user.getFollowers();
+
+        if(userFollowers.isEmpty()) {
+            throw new FollowersNotFoundException("no followers found");
+        }
+
+        return userFollowers
+                .stream()
+                .map(userFollower -> new FollowersDto(userFollower.getFirstName(), userFollower.getLastName()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public List<FollowingDto> getAllFollowing(String token) throws InvalidTokenException, UserNotFollowingAnyoneException {
+        User user = validateAndGetUser(token);
+
+        // Check if the user is following anyone
+        Set<User> userFollowing = user.getFollowing();
+        if (userFollowing.isEmpty()) {
+            throw new UserNotFollowingAnyoneException("The user is not following anyone.");
+        }
+
+        // Convert the set of following users to a list of DTOs using Stream API
+        return userFollowing.stream()
+                .map(followingUser -> new FollowingDto(followingUser.getFirstName(), followingUser.getLastName()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public List<MutualFollowersDto> getMutualFollowers(String token, String anotherUser) throws InvalidTokenException, FollowersNotFoundException, UserNotFoundException {
+        User user = validateAndGetUser(token);
+        Optional<User> optionalUser = userRepository.findUserByEmail(anotherUser);
+
+        if(optionalUser.isEmpty()) {
+            throw new UserNotFoundException("given user is not available");
+        }
+        User targetUser = optionalUser.get();
+        Set<User> mutualFollowersSet = new HashSet<>(user.getFollowers());
+        mutualFollowersSet.retainAll(targetUser.getFollowers());
+
+        if(mutualFollowersSet.isEmpty()) {
+            throw new FollowersNotFoundException("no mutual followers found");
+        }
+
+        return mutualFollowersSet.stream()
+                .map(follower -> new MutualFollowersDto(follower.getFirstName(), follower.getLastName()))
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public Long getUserFollowersCount(String token) throws InvalidTokenException {
+        User user = validateAndGetUser(token);
+        return (long) user.getFollowers().size();
+    }
+
+    @Override
+    public Long getUserFollowingCount(String token) throws InvalidTokenException {
+        User user = validateAndGetUser(token);
+        return (long) user.getFollowing().size();
     }
 
     private User validateAndGetUser(String token) throws InvalidTokenException {
