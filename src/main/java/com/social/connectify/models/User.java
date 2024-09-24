@@ -91,4 +91,7 @@ public class User extends BaseModel{
     )
     private Set<User> following;
 
+    @OneToMany(cascade = CascadeType.ALL)
+    private List<GroupMembership> groupMemberships;
+
 }

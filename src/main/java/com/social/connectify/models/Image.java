@@ -26,4 +26,7 @@ public class Image extends BaseModel{
     @ManyToOne(cascade = CascadeType.PERSIST, optional = true)
     @JsonIgnore
     private Message message;
+
+    @OneToOne
+    private Group group;
 }

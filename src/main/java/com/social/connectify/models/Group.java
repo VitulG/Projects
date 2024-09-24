@@ -38,4 +38,10 @@ public class Group extends BaseModel {
 
     @ManyToMany(mappedBy = "groups")
     private Set<Message> messages;
+
+    @OneToMany(cascade = CascadeType.REMOVE)
+    private List<GroupMembership> groupMemberships;
+
+    @OneToOne
+    private Image groupImage;
 }

@@ -1,6 +1,6 @@
 package com.social.connectify.models;
 
-public enum UserRole {
+public enum GroupUserRole {
     USER,
     ADMIN
 }
