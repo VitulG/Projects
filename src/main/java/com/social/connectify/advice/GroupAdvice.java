@@ -1,6 +1,6 @@
 package com.social.connectify.advice;
 
-import com.social.connectify.dto.GroupCreationException;
+import com.social.connectify.exceptions.GroupCreationException;
 import com.social.connectify.exceptions.GroupNotFoundException;
 import com.social.connectify.exceptions.UserNotInGroupException;
 import org.springframework.http.HttpStatus;

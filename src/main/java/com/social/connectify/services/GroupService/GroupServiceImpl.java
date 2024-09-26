@@ -1,8 +1,8 @@
 package com.social.connectify.services.GroupService;
 
 import com.social.connectify.dto.GroupCreationDto;
-import com.social.connectify.dto.GroupCreationException;
-import com.social.connectify.exceptions.InvalidTokenException;
+import com.social.connectify.dto.RespondGroupRequestDto;
+import com.social.connectify.exceptions.*;
 import com.social.connectify.models.*;
 import com.social.connectify.repositories.*;
 import com.social.connectify.validations.GroupCreationValidator;
@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -23,17 +24,20 @@ public class GroupServiceImpl implements GroupService {
     private final GroupRepository groupRepository;
     private final GroupCreationValidator groupCreationValidator;
     private final UserRepository userRepository;
+    private final NotificationRepository notificationRepository;
 
     @Autowired
     public GroupServiceImpl(TokenRepository tokenRepository, ImageRepository imageRepository,
                             GroupMembershipRepository groupMembershipRepository, GroupRepository groupRepository,
-                            GroupCreationValidator groupCreationValidator, UserRepository userRepository) {
+                            GroupCreationValidator groupCreationValidator, UserRepository userRepository,
+                            NotificationRepository notificationRepository) {
         this.tokenRepository = tokenRepository;
         this.imageRepository = imageRepository;
         this.groupMembershipRepository = groupMembershipRepository;
         this.groupRepository = groupRepository;
         this.groupCreationValidator = groupCreationValidator;
         this.userRepository = userRepository;
+        this.notificationRepository = notificationRepository;
     }
 
     @Override
@@ -65,6 +69,7 @@ public class GroupServiceImpl implements GroupService {
         groupMembership.setGroup(group);
         groupMembership.setUser(user);
         groupMembership.setRole(GroupUserRole.ADMIN);
+        groupMembership.setStatus(JoinGroupStatus.ACCEPTED);
         groupMembershipRepository.save(groupMembership);
         group.getGroupMemberships().add(groupMembership);
 
@@ -88,6 +93,107 @@ public class GroupServiceImpl implements GroupService {
         return "group created with id: "+group.getGroupId();
     }
 
+    @Override
+    @Transactional
+    public String joinGroup(String token, Long groupId) throws InvalidTokenException, GroupNotFoundException {
+        User user = validateAndGetUser(token);
+        Optional<Group> optionalGroup = groupRepository.findByGroupId(groupId);
+
+        if(optionalGroup.isEmpty()) {
+            throw new GroupNotFoundException("Group not found with the given id.");
+        }
+        Group group = optionalGroup.get();
+
+        // Check if the user has already sent a join request
+        for (GroupMembership membership : group.getGroupMemberships()) {
+            if (membership.getUser().getUserId().equals(user.getUserId()) &&
+                    membership.getStatus() == JoinGroupStatus.PENDING) {
+                return "You have already requested to join this group.";
+            }
+        }
+
+        List<User> groupAdmins = new ArrayList<>();
+
+        for(GroupMembership member : group.getGroupMemberships()) {
+            if(member.getRole() == GroupUserRole.ADMIN) {
+                groupAdmins.add(member.getUser());
+            }
+        }
+        // notify the group admins
+        createNotificationForAdmin(user, groupAdmins, group);
+
+        GroupMembership membership = new GroupMembership();
+        membership.setStatus(JoinGroupStatus.PENDING);
+        membership.setGroup(group);
+        membership.setUser(user);
+        membership.setRole(GroupUserRole.USER);
+        membership.setCreatedAt(LocalDateTime.now());
+        groupMembershipRepository.save(membership);
+
+        return "request send to the group with membership id: "+membership.getGroupMembershipId();
+    }
+
+    @Override
+    @Transactional
+    public String respondRequest(String token, RespondGroupRequestDto respondGroupRequestDto) throws InvalidTokenException, GroupMembershipNotFoundException, UnauthorizedUserException {
+        User admin = validateAndGetUser(token);
+        GroupMembership membership = groupMembershipRepository
+                .findById(respondGroupRequestDto.getMembershipId())
+                .orElseThrow(() -> new GroupMembershipNotFoundException("membership not found"));
+
+        boolean isAdmin = membership.getGroup().getGroupMemberships().stream()
+                .anyMatch(m -> m.getUser().getUserId().equals(admin.getUserId()) &&
+                        m.getRole() == GroupUserRole.ADMIN);
+
+        if(!isAdmin) {
+            throw new UnauthorizedUserException("Only group admins can respond to join requests.");
+        }
+
+        Group group = membership.getGroup();
+        if(respondGroupRequestDto.getResponse().equalsIgnoreCase(JoinGroupStatus.ACCEPTED.toString())) {
+            membership.setStatus(JoinGroupStatus.ACCEPTED);
+            group.getGroupMemberships().add(membership);
+            group.getUsers().add(membership.getUser());
+            if(membership.getUser().getGroupMemberships() == null) {
+                membership.getUser().setGroupMemberships(new ArrayList<>());
+            }
+            membership.getUser().getGroupMemberships().add(membership);
+            groupRepository.save(group);
+            groupMembershipRepository.save(membership);
+
+            createNotificationForUser(admin, membership.getUser(), group);
+
+            return "you added "+membership.getUser().getFirstName()+" "+membership.getUser().getLastName() +
+                    " to the group";
+        }else if(respondGroupRequestDto.getResponse().equalsIgnoreCase(JoinGroupStatus.REJECTED.toString())) {
+            membership.setStatus(JoinGroupStatus.REJECTED);
+            groupMembershipRepository.save(membership);
+            return "rejected";
+        }else {
+            throw new IllegalArgumentException("Invalid response");
+        }
+    }
+
+    private void createNotificationForUser(User admin, User requested, Group group) {
+        Notification notification = new Notification();
+        notification.setCreatedAt(LocalDateTime.now());
+        notification.setUser(requested);
+        notification.setMessage(admin.getFirstName()+" "+admin.getLastName()+" has accepted your request");
+        notification.setStatus(NotificationStatus.UNREAD);
+        notificationRepository.save(notification);
+    }
+
+    private void createNotificationForAdmin(User user, List<User> admins, Group group) {
+        for(User admin : admins) {
+            Notification notification = new Notification();
+            notification.setCreatedAt(LocalDateTime.now());
+            notification.setMessage(user.getFirstName()+" "+user.getLastName() +" wants to join the group "+group.getGroupName());
+            notification.setUser(admin);
+            notification.setStatus(NotificationStatus.UNREAD);
+            notificationRepository.save(notification);
+        }
+    }
+
     private User validateAndGetUser(String token) throws InvalidTokenException {
         Optional<Token> optionalToken = tokenRepository.findByToken(token);
         if(optionalToken.isEmpty()) {
@@ -98,7 +204,6 @@ public class GroupServiceImpl implements GroupService {
         if(!existingToken.isActive() || existingToken.getExpireAt().isBefore(java.time.LocalDateTime.now()) || existingToken.isDeleted()) {
             throw new InvalidTokenException("Either the token is not active or expired");
         }
-
         return existingToken.getUser();
     }
 }

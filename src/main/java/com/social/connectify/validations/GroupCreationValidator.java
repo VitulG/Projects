@@ -1,6 +1,6 @@
 package com.social.connectify.validations;
 
-import com.social.connectify.dto.GroupCreationException;
+import com.social.connectify.exceptions.GroupCreationException;
 import org.springframework.stereotype.Component;
 
 @Component

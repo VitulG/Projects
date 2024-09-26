@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class GroupMembership {
+public class GroupMembership extends BaseModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long groupMembershipId;
@@ -21,6 +21,9 @@ public class GroupMembership {
 
     @ManyToOne(cascade = CascadeType.PERSIST)
     private Group group;
+
+    @Enumerated(EnumType.STRING)
+    private JoinGroupStatus status;
 
     @Enumerated(EnumType.STRING)
     private GroupUserRole role;
