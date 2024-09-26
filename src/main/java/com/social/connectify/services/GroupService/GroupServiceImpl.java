@@ -1,6 +1,7 @@
 package com.social.connectify.services.GroupService;
 
 import com.social.connectify.dto.GroupCreationDto;
+import com.social.connectify.dto.GroupMembersDto;
 import com.social.connectify.dto.RespondGroupRequestDto;
 import com.social.connectify.exceptions.*;
 import com.social.connectify.models.*;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class GroupServiceImpl implements GroupService {
@@ -172,6 +174,74 @@ public class GroupServiceImpl implements GroupService {
         }else {
             throw new IllegalArgumentException("Invalid response");
         }
+    }
+
+    @Override
+    @Transactional
+    public List<GroupMembersDto> getAllGroupMembers(String token, Long groupId) throws InvalidTokenException, GroupNotFoundException, UnauthorizedUserException {
+        User user = validateAndGetUser(token);
+
+        Optional<Group> optionalGroup = groupRepository.findByGroupId(groupId);
+        if(optionalGroup.isEmpty()) {
+            throw new GroupNotFoundException("Group not found with the given id.");
+        }
+        Group group = optionalGroup.get();
+
+        boolean isGroupMember = group.getGroupMemberships().stream()
+                .anyMatch(membership -> membership.getUser().equals(user));
+
+        if(!isGroupMember) {
+            throw new UnauthorizedUserException("you are not authorized to view this group");
+        }
+
+        return group.getGroupMemberships().stream()
+                .map(membership -> {
+                    GroupMembersDto groupMembersDto = new GroupMembersDto();
+                    groupMembersDto.setUserName(membership.getUser().getFirstName() + " " + membership.getUser().getLastName());
+                    groupMembersDto.setRole(membership.getRole().toString());
+                    return groupMembersDto;
+                })
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public String makeUserAdmin(String token, Long groupId, Long userId) throws InvalidTokenException, UserNotFoundException, GroupNotFoundException, UnauthorizedUserException {
+        User admin = validateAndGetUser(token);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with the given id."));
+
+        Group group = groupRepository.findByGroupId(groupId)
+                .orElseThrow(() -> new GroupNotFoundException("Group not found with the given id."));
+
+
+        boolean isGroupAdmin = group.getGroupMemberships().stream()
+                .anyMatch(membership -> membership.getUser().equals(admin) &&
+                        membership.getRole() == GroupUserRole.ADMIN);
+
+        if(!isGroupAdmin) {
+            throw new UnauthorizedUserException("Only group admins can make other users admins.");
+        }
+
+        GroupMembership targetMembership = group.getGroupMemberships().stream()
+                .filter(membership -> membership.getUser().equals(user))
+                .findFirst()
+                .orElseThrow(() -> new UserNotFoundException("User is not part of this group."));
+
+        targetMembership.setRole(GroupUserRole.ADMIN);
+        groupMembershipRepository.save(targetMembership);
+
+       return "Ok";
+    }
+
+    private void createNotificationForUserPromotion(User admin, User user, Group group) {
+        Notification notification = new Notification();
+        notification.setCreatedAt(LocalDateTime.now());
+        notification.setUser(user);
+        notification.setMessage(admin.getFirstName()+" "+admin.getLastName()+" has made you an admin of the group "+
+                group.getGroupName());
+        notification.setStatus(NotificationStatus.UNREAD);
+        notificationRepository.save(notification);
     }
 
     private void createNotificationForUser(User admin, User requested, Group group) {

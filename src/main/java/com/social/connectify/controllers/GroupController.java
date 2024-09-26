@@ -1,6 +1,7 @@
 package com.social.connectify.controllers;
 
 import com.social.connectify.dto.GroupCreationDto;
+import com.social.connectify.dto.GroupMembersDto;
 import com.social.connectify.dto.RespondGroupRequestDto;
 import com.social.connectify.exceptions.*;
 import com.social.connectify.services.GroupService.GroupService;
@@ -8,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/groups")
@@ -49,7 +53,7 @@ public class GroupController {
     }
 
     @PostMapping("/respond-request")
-    public ResponseEntity<String> respondToGroupRequest(@RequestHeader("Authorization") String token,
+    public ResponseEntity<String>  responseARequest(@RequestHeader("Authorization") String token,
                                                         @RequestBody RespondGroupRequestDto respondGroupRequestDto) {
         try {
             String response = groupService.respondRequest(token, respondGroupRequestDto);
@@ -60,6 +64,36 @@ public class GroupController {
             return new ResponseEntity<>(membershipNotFoundException.getMessage(), HttpStatus.NOT_FOUND);
         } catch (IllegalArgumentException illegalArgumentException) {
             return new ResponseEntity<>(illegalArgumentException.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception exception) {
+            return new ResponseEntity<>(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/get-members/{groupId}")
+    public ResponseEntity<List<GroupMembersDto>> getAllGroupMembers(@RequestHeader("Authorization") String token,
+                                                                    @PathVariable("groupId") Long groupId) {
+        try {
+            List<GroupMembersDto> groupMembers = groupService.getAllGroupMembers(token, groupId);
+            return new ResponseEntity<>(groupMembers, HttpStatus.OK);
+        } catch (InvalidTokenException | UnauthorizedUserException securityException) {
+            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.UNAUTHORIZED);
+        } catch (GroupNotFoundException notFoundException) {
+            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.NOT_FOUND);
+        } catch (Exception exception) {
+            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PatchMapping("/{groupId}/{userId}/make-admin")
+    public ResponseEntity<String> makeAdmin(@RequestHeader("Authorization") String token,
+                                          @PathVariable("groupId") Long groupId, @PathVariable("userId") Long userId) {
+        try {
+            String response = groupService.makeUserAdmin(token, groupId, userId);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (InvalidTokenException | UnauthorizedUserException securityException) {
+            return new ResponseEntity<>(securityException.getMessage(), HttpStatus.UNAUTHORIZED);
+        } catch (UserNotFoundException | GroupNotFoundException notFoundException) {
+            return new ResponseEntity<>(notFoundException.getMessage(), HttpStatus.NOT_FOUND);
         } catch (Exception exception) {
             return new ResponseEntity<>(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
