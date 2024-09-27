@@ -79,15 +79,15 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public String loginUser(UserLoginDetailsDto userLoginDetailsDto) throws UserNotFoundException,
-            InvalidCredentialsException, SessionAlreadyActiveException, PasswordMismatchException {
+            InvalidCredentialsException, SessionAlreadyActiveException, PasswordMismatchException, UserNameMismatchException {
         Optional<User> optionalUser = userRepository.findUserByEmail(userLoginDetailsDto.getEmail());
 
         if(optionalUser.isEmpty() || optionalUser.get().isDeleted()) {
             throw new UserNotFoundException("User does not exists");
         }
 
-        userLoginCredentialsValidator.validateUserLoginDetails(userLoginDetailsDto);
         User user = optionalUser.get();
+        userLoginCredentialsValidator.validateUserLoginDetails(userLoginDetailsDto, user);
 
         if(!bCryptPasswordEncoder.matches(userLoginDetailsDto.getPassword(), user.getPassword())) {
             throw new PasswordMismatchException("invalid password");

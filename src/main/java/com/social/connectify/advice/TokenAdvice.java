@@ -2,6 +2,7 @@ package com.social.connectify.advice;
 
 import com.social.connectify.exceptions.InvalidTokenException;
 import com.social.connectify.exceptions.SessionAlreadyActiveException;
+import com.social.connectify.exceptions.UserNameMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -17,6 +18,12 @@ public class TokenAdvice {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleException(Exception ex) {
         return new ResponseEntity<>("An error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(UserNameMismatchException.class)
+    public ResponseEntity<String> handleUserNameMismatchException(UserNameMismatchException
+                                                                                   userNameMismatchException) {
+        return new ResponseEntity<>(userNameMismatchException.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(SessionAlreadyActiveException.class)

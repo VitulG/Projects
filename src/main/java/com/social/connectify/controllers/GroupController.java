@@ -1,5 +1,6 @@
 package com.social.connectify.controllers;
 
+import com.social.connectify.dto.AddMembersDto;
 import com.social.connectify.dto.GroupCreationDto;
 import com.social.connectify.dto.GroupMembersDto;
 import com.social.connectify.dto.RespondGroupRequestDto;
@@ -111,6 +112,36 @@ public class GroupController {
             return new ResponseEntity<>(groupNotFoundException.getMessage(), HttpStatus.NOT_FOUND);
         } catch (Exception exception) {
             return new ResponseEntity<>(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/remove-member/{groupId}/{userId}")
+    public ResponseEntity<String> removeMember(@RequestHeader("Authorization") String token,
+                                               @PathVariable("groupId") Long groupId, @PathVariable("userId") Long userId) {
+        try {
+            String response = groupService.removeAMember(token, groupId, userId);
+            return ResponseEntity.ok(response);
+        } catch (InvalidTokenException | UnauthorizedUserException securityException) {
+            return new ResponseEntity<>(securityException.getMessage(), HttpStatus.UNAUTHORIZED);
+        } catch (UserNotFoundException | GroupNotFoundException notFoundException) {
+            return new ResponseEntity<>(notFoundException.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception ex) {
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PatchMapping("/add-members")
+    public ResponseEntity<String> addMembers(@RequestHeader("Authorization") String token,
+                                             @RequestBody AddMembersDto membersDto) {
+        try {
+            String response = groupService.addMembers(token, membersDto);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (InvalidTokenException | UnauthorizedUserException securityException) {
+            return new ResponseEntity<>(securityException.getMessage(), HttpStatus.UNAUTHORIZED);
+        } catch (GroupNotFoundException notFoundException) {
+            return new ResponseEntity<>(notFoundException.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception ex) {
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

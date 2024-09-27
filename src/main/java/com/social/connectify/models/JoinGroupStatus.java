@@ -4,5 +4,6 @@ public enum JoinGroupStatus {
     PENDING,
     ACCEPTED,
     REJECTED,
-    LEFT
+    LEFT,
+    REMOVED
 }

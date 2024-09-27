@@ -14,6 +14,11 @@ public class UserAdvice {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(UserNameMismatchException.class)
+    public ResponseEntity<String> handleUserNameMismatchException(UserNameMismatchException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<String> handleUserNotFoundException(UserNotFoundException ex) {
         return new ResponseEntity<String>(ex.getMessage(), HttpStatus.NOT_FOUND);

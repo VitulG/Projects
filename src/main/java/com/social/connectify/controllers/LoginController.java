@@ -47,8 +47,10 @@ public class LoginController {
             return new ResponseEntity<>(response, HttpStatus.OK);
         }catch (UserNotFoundException userNotFoundException) {
             return new ResponseEntity<>(userNotFoundException.getMessage(), HttpStatus.NOT_FOUND);
-        }catch (InvalidCredentialsException invalidCredentialsException) {
+        }catch (InvalidCredentialsException | PasswordMismatchException invalidCredentialsException) {
             return new ResponseEntity<>(invalidCredentialsException.getMessage(), HttpStatus.UNAUTHORIZED);
+        }catch (UserNameMismatchException userNameMismatchException) {
+            return new ResponseEntity<>(userNameMismatchException.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (SessionAlreadyActiveException sessionAlreadyActiveException) {
             return new ResponseEntity<>(sessionAlreadyActiveException.getMessage(), HttpStatus.CONFLICT);
         } catch (Exception ex) {

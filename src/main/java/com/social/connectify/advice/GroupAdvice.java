@@ -2,6 +2,7 @@ package com.social.connectify.advice;
 
 import com.social.connectify.exceptions.GroupCreationException;
 import com.social.connectify.exceptions.GroupNotFoundException;
+import com.social.connectify.exceptions.UserAlreadyInGroupException;
 import com.social.connectify.exceptions.UserNotInGroupException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,11 @@ public class GroupAdvice {
     @ExceptionHandler(UserNotInGroupException.class)
     public ResponseEntity<String> handleUserNotInGroupException(UserNotInGroupException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(UserAlreadyInGroupException.class)
+    public ResponseEntity<String> handleUserAlreadyInGroupException(UserAlreadyInGroupException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)

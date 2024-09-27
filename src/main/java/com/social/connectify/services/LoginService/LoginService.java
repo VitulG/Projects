@@ -9,7 +9,7 @@ public interface LoginService {
     String signUpUser(UserDetailsDto userDetailsDto) throws UserAlreadyExistsException,
             UserCreationException, PasswordMismatchException;
     String loginUser(UserLoginDetailsDto userLoginDetailsDto) throws UserNotFoundException,
-            InvalidCredentialsException, SessionAlreadyActiveException, PasswordMismatchException;
+            InvalidCredentialsException, SessionAlreadyActiveException, PasswordMismatchException, UserNameMismatchException;
     UserDetailsResponseDto validateToken(String token) throws InvalidTokenException;
     String logoutUser(String token) throws InvalidTokenException;
 }
