@@ -98,4 +98,19 @@ public class GroupController {
             return new ResponseEntity<>(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @DeleteMapping("/leave/{groupId}")
+    public ResponseEntity<String> leaveGroup(@RequestHeader("Authorization") String token,
+                                             @PathVariable("groupId") Long groupId) {
+        try {
+            String response = groupService.leaveGroup(token, groupId);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (InvalidTokenException | UnauthorizedUserException securityException) {
+            return new ResponseEntity<>(securityException.getMessage(), HttpStatus.UNAUTHORIZED);
+        } catch (GroupNotFoundException groupNotFoundException) {
+            return new ResponseEntity<>(groupNotFoundException.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception exception) {
+            return new ResponseEntity<>(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

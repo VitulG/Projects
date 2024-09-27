@@ -122,7 +122,7 @@ public class GroupServiceImpl implements GroupService {
             }
         }
         // notify the group admins
-        createNotificationForAdmin(user, groupAdmins, group);
+        createNotificationForAdmin(user, groupAdmins, group, GroupNotificationType.JOIN_REQUEST_APPROVAL);
 
         GroupMembership membership = new GroupMembership();
         membership.setStatus(JoinGroupStatus.PENDING);
@@ -163,7 +163,7 @@ public class GroupServiceImpl implements GroupService {
             groupRepository.save(group);
             groupMembershipRepository.save(membership);
 
-            createNotificationForUser(admin, membership.getUser(), group);
+            createNotificationForUser(admin, membership.getUser(), group, GroupNotificationType.JOIN_REQUEST_APPROVED);
 
             return "you added "+membership.getUser().getFirstName()+" "+membership.getUser().getLastName() +
                     " to the group";
@@ -195,6 +195,7 @@ public class GroupServiceImpl implements GroupService {
         }
 
         return group.getGroupMemberships().stream()
+                .filter(membership -> membership.getStatus() != JoinGroupStatus.LEFT)
                 .map(membership -> {
                     GroupMembersDto groupMembersDto = new GroupMembersDto();
                     groupMembersDto.setUserName(membership.getUser().getFirstName() + " " + membership.getUser().getLastName());
@@ -229,35 +230,77 @@ public class GroupServiceImpl implements GroupService {
                 .orElseThrow(() -> new UserNotFoundException("User is not part of this group."));
 
         targetMembership.setRole(GroupUserRole.ADMIN);
+        createNotificationForUser(admin, user, group, GroupNotificationType.PROMOTION);
         groupMembershipRepository.save(targetMembership);
 
        return "Ok";
     }
 
-    private void createNotificationForUserPromotion(User admin, User user, Group group) {
+    @Override
+    @Transactional
+    public String leaveGroup(String token, Long groupId) throws InvalidTokenException, GroupNotFoundException, UnauthorizedUserException {
+        User user = validateAndGetUser(token);
+        Group group = groupRepository.findByGroupId(groupId)
+                .orElseThrow(() -> new GroupNotFoundException("group not found"));
+
+        if(!group.getUsers().contains(user)) {
+            throw new UnauthorizedUserException("user is not part of this group");
+        }
+
+        GroupMembership membership = group.getGroupMemberships().stream()
+                .filter(m -> m.getUser().equals(user))
+                .findFirst()
+                .orElseThrow(() -> new UnauthorizedUserException("membership not found"));
+
+        membership.setStatus(JoinGroupStatus.LEFT);
+        membership.setDeleted(true);
+        membership.setUpdatedAt(LocalDateTime.now());
+        groupMembershipRepository.save(membership);
+
+        // remove the user from the group
+        group.getUsers().remove(user);
+        group.getGroupMemberships().removeIf(userMembership -> userMembership.getUser().equals(user));
+
+        user.getGroupMemberships().removeIf(userMembership -> userMembership.getGroup().getGroupId()
+                .equals(group.getGroupId()));
+
+        userRepository.save(user);
+        groupRepository.save(group);
+
+        List<User> admins = group.getGroupMemberships().stream()
+                .filter(adminMembership -> adminMembership.getRole() == GroupUserRole.ADMIN)
+                .map(GroupMembership::getUser)
+                .toList();
+
+        createNotificationForAdmin(user, admins, group, GroupNotificationType.USER_LEFT_GROUP);
+        return "you left the group";
+    }
+
+    private void createNotificationForUser(User admin, User user, Group group, GroupNotificationType type) {
         Notification notification = new Notification();
         notification.setCreatedAt(LocalDateTime.now());
         notification.setUser(user);
-        notification.setMessage(admin.getFirstName()+" "+admin.getLastName()+" has made you an admin of the group "+
-                group.getGroupName());
         notification.setStatus(NotificationStatus.UNREAD);
+
+        if(type == GroupNotificationType.PROMOTION) {
+            notification.setMessage(admin.getFirstName()+" "+admin.getLastName()+" has made you an admin of the group "+
+                    group.getGroupName());
+        }else if(type == GroupNotificationType.JOIN_REQUEST_APPROVED) {
+            notification.setMessage(admin.getFirstName()+" "+admin.getLastName()+" has accepted your request");
+        }
+
         notificationRepository.save(notification);
     }
 
-    private void createNotificationForUser(User admin, User requested, Group group) {
-        Notification notification = new Notification();
-        notification.setCreatedAt(LocalDateTime.now());
-        notification.setUser(requested);
-        notification.setMessage(admin.getFirstName()+" "+admin.getLastName()+" has accepted your request");
-        notification.setStatus(NotificationStatus.UNREAD);
-        notificationRepository.save(notification);
-    }
-
-    private void createNotificationForAdmin(User user, List<User> admins, Group group) {
+    private void createNotificationForAdmin(User user, List<User> admins, Group group, GroupNotificationType type) {
         for(User admin : admins) {
             Notification notification = new Notification();
             notification.setCreatedAt(LocalDateTime.now());
-            notification.setMessage(user.getFirstName()+" "+user.getLastName() +" wants to join the group "+group.getGroupName());
+            if(type == GroupNotificationType.JOIN_REQUEST_APPROVAL) {
+                notification.setMessage(user.getFirstName()+" "+user.getLastName() +" wants to join the group "+group.getGroupName());
+            }else if(type == GroupNotificationType.USER_LEFT_GROUP) {
+                notification.setMessage(user.getFirstName()+" "+user.getLastName() +" has left the group "+group.getGroupName());
+            }
             notification.setUser(admin);
             notification.setStatus(NotificationStatus.UNREAD);
             notificationRepository.save(notification);
