@@ -1,9 +1,6 @@
 package com.social.connectify.services.GroupService;
 
-import com.social.connectify.dto.AddMembersDto;
-import com.social.connectify.dto.GroupCreationDto;
-import com.social.connectify.dto.GroupMembersDto;
-import com.social.connectify.dto.RespondGroupRequestDto;
+import com.social.connectify.dto.*;
 import com.social.connectify.exceptions.*;
 
 import java.util.List;
@@ -17,4 +14,6 @@ public interface GroupService {
     String leaveGroup(String token, Long groupId) throws InvalidTokenException, GroupNotFoundException, UnauthorizedUserException;
     String removeAMember(String token, Long groupId, Long userId) throws InvalidTokenException, GroupNotFoundException, UserNotFoundException, UnauthorizedUserException;
     String addMembers(String token, AddMembersDto addMembersDto) throws InvalidTokenException, GroupNotFoundException, UnauthorizedUserException;
+    String updateGroupDetails(String token, UpdateGroupDetailsDto detailsDto) throws InvalidTokenException, GroupNotFoundException, UnauthorizedUserException;
+    String deleteGroup(String token, Long groupId) throws InvalidTokenException, GroupNotFoundException, UnauthorizedUserException;
 }

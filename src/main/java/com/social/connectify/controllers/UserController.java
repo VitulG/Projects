@@ -13,6 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -79,6 +82,18 @@ public class UserController {
             return new ResponseEntity<>(invalidTokenException.getMessage(), HttpStatus.UNAUTHORIZED);
         }  catch (Exception ex) {
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/user-groups")
+    public ResponseEntity<List<String>> userGroups(@RequestHeader("Authorization") String token) {
+        try {
+            List<String> userGroups = userService.getUserGroups(token);
+            return new ResponseEntity<>(userGroups, HttpStatus.OK);
+        } catch (InvalidTokenException invalidTokenException) {
+            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.UNAUTHORIZED);
+        } catch (Exception ex) {
+            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

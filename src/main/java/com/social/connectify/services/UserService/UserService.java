@@ -8,6 +8,8 @@ import com.social.connectify.exceptions.PasswordMismatchException;
 import com.social.connectify.exceptions.UserNotFoundException;
 import com.social.connectify.exceptions.UserUpdationException;
 
+import java.util.List;
+
 public interface UserService {
     UserDetailsResponseDto getUserDetails(String token) throws InvalidTokenException;
     String updateUserDetails(String token, UserUpdateDetailsDto userUpdateDetailsDto) throws InvalidTokenException,
@@ -15,4 +17,5 @@ public interface UserService {
     String changeUserPassword(String token, ChangePasswordRequestDto changePasswordRequestDto) throws InvalidTokenException,
             UserNotFoundException, PasswordMismatchException;
     String deleteUserAccount(String token) throws InvalidTokenException;
+    List<String> getUserGroups(String token) throws InvalidTokenException;
 }

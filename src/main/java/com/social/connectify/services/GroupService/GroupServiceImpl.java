@@ -1,9 +1,6 @@
 package com.social.connectify.services.GroupService;
 
-import com.social.connectify.dto.AddMembersDto;
-import com.social.connectify.dto.GroupCreationDto;
-import com.social.connectify.dto.GroupMembersDto;
-import com.social.connectify.dto.RespondGroupRequestDto;
+import com.social.connectify.dto.*;
 import com.social.connectify.exceptions.*;
 import com.social.connectify.models.*;
 import com.social.connectify.repositories.*;
@@ -94,6 +91,8 @@ public class GroupServiceImpl implements GroupService {
             group.setUsers(new HashSet<>());
         }
         group.getUsers().add(user);
+
+        group.setGroupStatus(GroupStatus.ACTIVE);
 
         groupRepository.save(group);
         return "group created with id: "+group.getGroupId();
@@ -391,6 +390,81 @@ public class GroupServiceImpl implements GroupService {
         return "added successfully";
     }
 
+    @Override
+    @Transactional
+    public String updateGroupDetails(String token, UpdateGroupDetailsDto detailsDto) throws InvalidTokenException, GroupNotFoundException, UnauthorizedUserException {
+        User user = validateAndGetUser(token);
+
+        Group group = groupRepository.findByGroupId(detailsDto.getGroupId())
+                .orElseThrow(() -> new GroupNotFoundException("group does not exist"));
+
+        boolean isGroupAdmin = group.getGroupMemberships()
+                .stream()
+                .anyMatch(member -> member.getUser().equals(user) && member.getRole() == GroupUserRole.ADMIN);
+
+        if(!isGroupAdmin) {
+            throw new UnauthorizedUserException("you are not allowed to update the group details");
+        }
+
+        if(detailsDto.getNewGroupName() != null && !detailsDto.getNewGroupName().isEmpty()) {
+            group.setGroupName(detailsDto.getNewGroupName());
+        }
+
+        if(detailsDto.getNewGroupDescription() != null && !detailsDto.getNewGroupDescription().isEmpty()) {
+            group.setGroupDescription(detailsDto.getNewGroupDescription());
+        }
+
+        group.setUpdatedAt(LocalDateTime.now());
+
+        if(detailsDto.getNewImageUrl() != null && !detailsDto.getNewImageUrl().isEmpty()) {
+            Image groupImage = group.getGroupImage();
+            if (groupImage == null) {
+                groupImage = new Image();
+                groupImage.setCreatedAt(LocalDateTime.now());
+                group.setGroupImage(groupImage);
+            }
+            groupImage.setImageUrl(detailsDto.getNewImageUrl());
+            groupImage.setUpdatedAt(LocalDateTime.now());
+            imageRepository.save(groupImage);
+        }
+        groupRepository.save(group);
+
+        return "group details updated successfully";
+    }
+
+    @Override
+    @Transactional
+    public String deleteGroup(String token, Long groupId) throws InvalidTokenException, GroupNotFoundException, UnauthorizedUserException {
+        User admin = validateAndGetUser(token);
+        Group group = groupRepository.findByGroupId(groupId)
+                .orElseThrow(() -> new GroupNotFoundException("Group does not exist"));
+
+        boolean isGroupAdmin = group.getGroupMemberships()
+                .stream()
+                .anyMatch(member -> member.getUser().equals(admin) && member.getRole() == GroupUserRole.ADMIN);
+
+        if(!isGroupAdmin) {
+            throw new UnauthorizedUserException("Only group admins can delete a group");
+        }
+
+        // I will notify the users, and then I will delete the group
+        for(User member : group.getUsers()) {
+            if(member == admin) {
+                continue;
+            }
+            createNotificationForUser(admin, member, group, GroupNotificationType.GROUP_DELETED);
+        }
+
+        group.setGroupStatus(GroupStatus.DELETED);
+        group.setUpdatedAt(LocalDateTime.now());
+        group.setDeleted(true);
+
+        groupRepository.save(group);
+
+        return "you deleted the group";
+
+    }
+
     private void createNotificationForUser(User admin, User user, Group group, GroupNotificationType type) {
         Notification notification = new Notification();
         notification.setCreatedAt(LocalDateTime.now());
@@ -408,6 +482,7 @@ public class GroupServiceImpl implements GroupService {
                     group.getGroupName();
             case ADMIN_REMOVED_USER -> admin.getFirstName()+" "+admin.getLastName()+" has removed you from the group "+group.getGroupName();
             case GROUP_MEMBER_ADD_USERS -> admin.getFirstName()+" "+admin.getLastName()+" added you to the group "+group.getGroupName();
+            case GROUP_DELETED -> admin.getFirstName()+" "+admin.getLastName()+" has deleted the group "+group.getGroupName();
             default -> throw new IllegalArgumentException("invalid type");
         };
     }

@@ -7,18 +7,24 @@ import com.social.connectify.exceptions.InvalidTokenException;
 import com.social.connectify.exceptions.PasswordMismatchException;
 import com.social.connectify.exceptions.UserNotFoundException;
 import com.social.connectify.exceptions.UserUpdationException;
+import com.social.connectify.models.Group;
+import com.social.connectify.models.GroupStatus;
 import com.social.connectify.models.Token;
 import com.social.connectify.models.User;
 import com.social.connectify.repositories.TokenRepository;
 import com.social.connectify.repositories.UserRepository;
 import com.social.connectify.validations.UserUpdateDetailsValidator;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -37,18 +43,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserDetailsResponseDto getUserDetails(String token) throws InvalidTokenException {
-        Optional<Token> optionalToken = tokenRepository.findByToken(token);
-
-        if(optionalToken.isEmpty()) {
-            throw new InvalidTokenException("token is invalid");
-        }
-
-        if(optionalToken.get().isDeleted() || optionalToken.get().getExpireAt().isBefore(LocalDateTime.now())) {
-            throw new InvalidTokenException("token is expired or deleted");
-        }
-
-        User user = optionalToken.get().getUser();
+        User user = validateAndGetUser(token);
 
         UserDetailsResponseDto response = new UserDetailsResponseDto();
         response.setFirstName(user.getFirstName());
@@ -62,28 +59,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public String updateUserDetails(String token, UserUpdateDetailsDto userUpdateDetailsDto) throws InvalidTokenException,
             UserNotFoundException, PasswordMismatchException, UserUpdationException {
 
-        Optional<Token> optionalToken = tokenRepository.findByToken(token);
-
-        if(optionalToken.isEmpty()) {
-            throw new InvalidTokenException("Invalid token");
-        }
-
-        if(optionalToken.get().isDeleted() || optionalToken.get().getExpireAt().isBefore(LocalDateTime.now())) {
-            throw new InvalidTokenException("Token expired or deleted");
-        }
+        User user = validateAndGetUser(token);
 
         userUpdateDetailsValidator.validateUserUpdateDetails(userUpdateDetailsDto);
-
-        Optional<User> optionalUser = userRepository.findUserByEmail(optionalToken.get().getUser().getEmail());
-
-        if(optionalUser.isEmpty()) {
-            throw new UserNotFoundException("User not found");
-        }
-
-        User user = optionalUser.get();
 
         if(user.isDeleted()) {
             throw new UserNotFoundException("either user deactivated or account is deleted");
@@ -114,23 +96,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String changeUserPassword(String token, ChangePasswordRequestDto changePasswordRequestDto) throws InvalidTokenException, UserNotFoundException, PasswordMismatchException {
-        Optional<Token> optionalToken = tokenRepository.findByToken(token);
 
-        if(optionalToken.isEmpty()) {
-            throw new InvalidTokenException("Invalid token");
-        }
-
-        if(optionalToken.get().isDeleted() || optionalToken.get().getExpireAt().isBefore(LocalDateTime.now())) {
-            throw new InvalidTokenException("Token is either expired or deleted");
-        }
-
-        Optional<User> optionalUser = userRepository.findUserByEmail(optionalToken.get().getUser().getEmail());
-
-        if(optionalUser.isEmpty()) {
-            throw new UserNotFoundException("User not found");
-        }
-
-        User user = optionalUser.get();
+        User user = validateAndGetUser(token);
 
         if(user.isDeleted()) {
             throw new UserNotFoundException("User is either deleted or deactivated");
@@ -159,17 +126,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String deleteUserAccount(String token) throws InvalidTokenException {
-        Optional<Token> optionalToken = tokenRepository.findByToken(token);
 
-        if(optionalToken.isEmpty()) {
-            throw  new InvalidTokenException("Token does not exist");
-        }
-
-        if(optionalToken.get().isDeleted() || optionalToken.get().getExpireAt().isBefore(LocalDateTime.now())) {
-            throw new InvalidTokenException("Token is expired or deleted");
-        }
-
-        User user = optionalToken.get().getUser();
+        User user = validateAndGetUser(token);
 
         for(Token userTokens : user.getUserTokens()) {
             userTokens.setActive(false);
@@ -180,6 +138,32 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         return "user deleted successfully";
+    }
+
+    @Override
+    @Transactional
+    public List<String> getUserGroups(String token) throws InvalidTokenException {
+        User user = validateAndGetUser(token);
+        return user.getUserGroups()
+                .stream()
+                .filter(group -> group.getGroupStatus() == GroupStatus.ACTIVE)
+                .filter(group -> !group.isDeleted())
+                .map(Group::getGroupName)
+                .toList();
+    }
+
+    private User validateAndGetUser(String token) throws InvalidTokenException {
+        Optional<Token> optionalToken = tokenRepository.findByToken(token);
+        if(optionalToken.isEmpty()) {
+            throw new InvalidTokenException("Token is invalid");
+        }
+
+        Token existingToken = optionalToken.get();
+
+        if(existingToken.isDeleted() || !existingToken.isActive() || existingToken.getExpireAt().isBefore(LocalDateTime.now())) {
+            throw new InvalidTokenException("either token is invalid or not active");
+        }
+        return existingToken.getUser();
     }
 
 }

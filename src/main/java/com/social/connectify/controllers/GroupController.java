@@ -1,9 +1,6 @@
 package com.social.connectify.controllers;
 
-import com.social.connectify.dto.AddMembersDto;
-import com.social.connectify.dto.GroupCreationDto;
-import com.social.connectify.dto.GroupMembersDto;
-import com.social.connectify.dto.RespondGroupRequestDto;
+import com.social.connectify.dto.*;
 import com.social.connectify.exceptions.*;
 import com.social.connectify.services.GroupService.GroupService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,6 +132,36 @@ public class GroupController {
                                              @RequestBody AddMembersDto membersDto) {
         try {
             String response = groupService.addMembers(token, membersDto);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (InvalidTokenException | UnauthorizedUserException securityException) {
+            return new ResponseEntity<>(securityException.getMessage(), HttpStatus.UNAUTHORIZED);
+        } catch (GroupNotFoundException notFoundException) {
+            return new ResponseEntity<>(notFoundException.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception ex) {
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("/update-group-details")
+    public ResponseEntity<String> updateGroupDetails(@RequestHeader("Authorization") String token,
+                                                   @RequestBody UpdateGroupDetailsDto detailsDto) {
+        try {
+            String response = groupService.updateGroupDetails(token, detailsDto);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (InvalidTokenException | UnauthorizedUserException securityException) {
+            return new ResponseEntity<>(securityException.getMessage(), HttpStatus.UNAUTHORIZED);
+        } catch (GroupNotFoundException notFoundException) {
+            return new ResponseEntity<>(notFoundException.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception ex) {
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/delete-group/{groupId}")
+    public ResponseEntity<String> deleteGroup(@RequestHeader("Authorization") String token,
+                                               @PathVariable("groupId") Long groupId) {
+        try {
+            String response = groupService.deleteGroup(token, groupId);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (InvalidTokenException | UnauthorizedUserException securityException) {
             return new ResponseEntity<>(securityException.getMessage(), HttpStatus.UNAUTHORIZED);

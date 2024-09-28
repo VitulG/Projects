@@ -24,6 +24,7 @@ public class Group extends BaseModel {
     private String groupName;
 
     private String groupDescription;
+    private GroupStatus groupStatus;
 
     @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(
