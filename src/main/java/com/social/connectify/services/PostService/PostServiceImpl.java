@@ -1,6 +1,8 @@
 package com.social.connectify.services.PostService;
 
 import com.social.connectify.dto.*;
+import com.social.connectify.enums.NotificationStatus;
+import com.social.connectify.enums.NotificationType;
 import com.social.connectify.exceptions.*;
 import com.social.connectify.models.*;
 import com.social.connectify.repositories.*;
@@ -8,7 +10,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;

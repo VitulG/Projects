@@ -1,8 +1,7 @@
 package com.social.connectify.repositories;
 
-import com.social.connectify.models.MessageStatus;
 import com.social.connectify.models.Notification;
-import com.social.connectify.models.NotificationStatus;
+import com.social.connectify.enums.NotificationStatus;
 import com.social.connectify.models.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

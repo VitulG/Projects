@@ -1,6 +1,6 @@
 package com.social.connectify.repositories;
 
-import com.social.connectify.models.FriendRequestStatus;
+import com.social.connectify.enums.FriendRequestStatus;
 import com.social.connectify.models.Friendship;
 import com.social.connectify.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;

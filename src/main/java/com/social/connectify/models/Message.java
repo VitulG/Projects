@@ -1,6 +1,8 @@
 package com.social.connectify.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.social.connectify.enums.MediaType;
+import com.social.connectify.enums.MessageStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,6 +25,9 @@ public class Message extends BaseModel {
 
     @Enumerated(EnumType.STRING)
     private MessageStatus messageStatus;
+
+    @Enumerated(EnumType.STRING)
+    private MediaType mediaType;
 
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JsonIgnore

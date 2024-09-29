@@ -8,7 +8,7 @@ import com.social.connectify.exceptions.PasswordMismatchException;
 import com.social.connectify.exceptions.UserNotFoundException;
 import com.social.connectify.exceptions.UserUpdationException;
 import com.social.connectify.models.Group;
-import com.social.connectify.models.GroupStatus;
+import com.social.connectify.enums.GroupStatus;
 import com.social.connectify.models.Token;
 import com.social.connectify.models.User;
 import com.social.connectify.repositories.TokenRepository;
@@ -20,11 +20,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {

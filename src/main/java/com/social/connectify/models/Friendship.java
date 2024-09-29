@@ -2,6 +2,7 @@ package com.social.connectify.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.social.connectify.dto.FriendshipDto;
+import com.social.connectify.enums.FriendRequestStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -2,13 +2,12 @@ package com.social.connectify.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.social.connectify.dto.NotificationDto;
+import com.social.connectify.enums.NotificationStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter

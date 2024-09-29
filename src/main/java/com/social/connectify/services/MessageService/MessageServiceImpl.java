@@ -4,6 +4,8 @@ import com.social.connectify.dto.GroupMessageDto;
 import com.social.connectify.dto.ReceivedMessageDto;
 import com.social.connectify.dto.SendMessageRequestDto;
 import com.social.connectify.dto.SentMessageDto;
+import com.social.connectify.enums.MediaType;
+import com.social.connectify.enums.MessageStatus;
 import com.social.connectify.exceptions.*;
 import com.social.connectify.models.*;
 import com.social.connectify.repositories.*;
@@ -223,59 +225,52 @@ public class MessageServiceImpl implements MessageService {
 
         message.setSender(sender);
 
-        if(sender.getSentMessages() == null) {
-            sender.setSentMessages(new ArrayList<>());
-        }
-        sender.getSentMessages().add(message);
-
         if(message.getReceivers() == null) {
             message.setReceivers(new HashSet<>());
         }
         message.getReceivers().add(recipient);
 
-        if(recipient.getReceivedMessages() == null) {
-            recipient.setReceivedMessages(new ArrayList<>());
-        }
-        recipient.getReceivedMessages().add(message);
-
         // Handle Images
-        if(sendMessageRequestDto.getImageUrl() != null) {
-            Image image = new Image();
-            image.setImageUrl(sendMessageRequestDto.getImageUrl());
-            image.setMessage(message);
-            if(message.getImages() == null) {
-                message.setImages(new ArrayList<>());
+        if(sendMessageRequestDto.getImageUrl() != null && !sendMessageRequestDto.getImageUrl().isEmpty()) {
+            for(String img : sendMessageRequestDto.getImageUrl()) {
+                Image image = new Image();
+                image.setImageUrl(img);
+                image.setMessage(message);
+                if(message.getImages() == null) {
+                    message.setImages(new ArrayList<>());
+                }
+                message.getImages().add(image);
+                imageRepository.save(image);
             }
-            message.getImages().add(image);
-            imageRepository.save(image);
+
         }
 
         // Handle Videos
-        if(sendMessageRequestDto.getVideoUrl() != null) {
-            Video video = new Video();
-            video.setVideoLink(sendMessageRequestDto.getVideoUrl());
-            video.setMessage(message);
-            if(message.getVideos() == null) {
-                message.setVideos(new ArrayList<>());
+        if(sendMessageRequestDto.getVideoUrl() != null && !sendMessageRequestDto.getVideoUrl().isEmpty()) {
+            for(String vid : sendMessageRequestDto.getVideoUrl()) {
+                Video video = new Video();
+                video.setVideoLink(vid);
+                video.setMessage(message);
+                if(message.getVideos() == null) {
+                    message.setVideos(new ArrayList<>());
+                }
+                message.getVideos().add(video);
+                videoRepository.save(video);
             }
-            message.getVideos().add(video);
-            videoRepository.save(video);
         }
 
-        // Handle Groups
-        if(sendMessageRequestDto.getGroups() != null) {
-            for(String group : sendMessageRequestDto.getGroups()) {
-                Optional<Group> recipientGroup = groupRepository.findByGroupName(group);
-                if(recipientGroup.isEmpty()) {
-                    throw new GroupNotFoundException("Group not found");
-                }
-                if(message.getGroups() == null) {
-                    message.setGroups(new ArrayList<>());
-                }
-                message.getGroups().add(recipientGroup.get());
-                groupRepository.save(recipientGroup.get());
-            }
-        }
+        MediaType type = getMediaType(sendMessageRequestDto);
+        message.setMediaType(type);
+
         return message;
+    }
+
+    private MediaType getMediaType(SendMessageRequestDto sendMessageRequestDto) {
+        if(sendMessageRequestDto.getImageUrl() == null  && sendMessageRequestDto.getVideoUrl() == null) {
+            return MediaType.TEXT;
+        }else if(sendMessageRequestDto.getMessage() == null) {
+            return MediaType.MULTIMEDIA;
+        }
+        return MediaType.TEXT_WITH_MULTIMEDIA;
     }
 }

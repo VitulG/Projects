@@ -1,5 +1,6 @@
 package com.social.connectify.models;
 
+import com.social.connectify.enums.GroupStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

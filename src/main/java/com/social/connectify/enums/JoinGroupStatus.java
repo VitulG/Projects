@@ -1,4 +1,4 @@
-package com.social.connectify.models;
+package com.social.connectify.enums;
 
 public enum JoinGroupStatus {
     PENDING,

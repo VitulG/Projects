@@ -1,5 +1,7 @@
 package com.social.connectify.models;
 
+import com.social.connectify.enums.GroupUserRole;
+import com.social.connectify.enums.JoinGroupStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

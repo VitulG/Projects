@@ -1,12 +1,14 @@
 package com.social.connectify.services.GroupService;
 
 import com.social.connectify.dto.*;
+import com.social.connectify.enums.*;
 import com.social.connectify.exceptions.*;
 import com.social.connectify.models.*;
 import com.social.connectify.repositories.*;
 import com.social.connectify.validations.GroupCreationValidator;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,19 +27,23 @@ public class GroupServiceImpl implements GroupService {
     private final GroupCreationValidator groupCreationValidator;
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
+    private final VideoRepository videoRepository;
+    private final MessageRepository messageRepository;
 
     @Autowired
     public GroupServiceImpl(TokenRepository tokenRepository, ImageRepository imageRepository,
                             GroupMembershipRepository groupMembershipRepository, GroupRepository groupRepository,
                             GroupCreationValidator groupCreationValidator, UserRepository userRepository,
-                            NotificationRepository notificationRepository) {
+                            NotificationRepository notificationRepository, VideoRepository videoRepository, MessageRepository messageRepository) {
         this.tokenRepository = tokenRepository;
-        this.imageRepository = imageRepository;
         this.groupMembershipRepository = groupMembershipRepository;
         this.groupRepository = groupRepository;
         this.groupCreationValidator = groupCreationValidator;
         this.userRepository = userRepository;
         this.notificationRepository = notificationRepository;
+        this.imageRepository = imageRepository;
+        this.videoRepository = videoRepository;
+        this.messageRepository = messageRepository;
     }
 
     @Override
@@ -463,6 +469,143 @@ public class GroupServiceImpl implements GroupService {
 
         return "you deleted the group";
 
+    }
+
+    @Override
+    @Transactional
+    public String sendGroupMessage(String token, SendMessageInGroupDto sendMessageInGroupDto) throws InvalidTokenException, GroupNotFoundException, UnauthorizedUserException {
+        User user = validateAndGetUser(token);
+
+        Group group = groupRepository.findByGroupId(sendMessageInGroupDto.getGroupId())
+                .orElseThrow(() -> new GroupNotFoundException("Group does not exist"));
+
+        boolean isGroupMember = group.getGroupMemberships().stream()
+                .anyMatch(member -> member.getUser().equals(user));
+
+        if(!isGroupMember) {
+            throw new UnauthorizedUserException("Only group members can send messages");
+        }
+
+        Message message = new Message();
+        MediaType mediaType = getMessageMediaType(sendMessageInGroupDto);
+        message.setMessageStatus(MessageStatus.SENT);
+        message.setSender(user);
+
+        if(message.getGroups() == null) {
+            message.setGroups(new ArrayList<>());
+        }
+        message.getGroups().add(group);
+
+        Image image = createImage(sendMessageInGroupDto, group, message);
+        Video video = createVideo(sendMessageInGroupDto, message);
+
+        if(message.getImages() == null) {
+            message.setImages(new ArrayList<>());
+        }
+        if(image != null) {
+            message.getImages().add(image);
+        }
+
+        if(message.getVideos() == null) {
+            message.setVideos(new ArrayList<>());
+        }
+        if(video != null) {
+            message.getVideos().add(video);
+        }
+
+        MediaType type = getMessageMediaType(sendMessageInGroupDto);
+        message.setMediaType(type);
+
+        message.setContent(sendMessageInGroupDto.getMessage());
+        message.setCreatedAt(LocalDateTime.now());
+
+        // send this message to the receivers
+        if(group.getMessages() == null) {
+            group.setMessages(new HashSet<>());
+        }
+        group.getMessages().add(message);
+        messageRepository.save(message);
+        groupRepository.save(group);
+
+        return "message sent";
+
+    }
+
+    @Override
+    @Transactional
+    public Page<GroupMessagesGetterDto> getGroupMessages(String token, Long groupId, int page, int size) throws InvalidTokenException, GroupNotFoundException, UnauthorizedUserException {
+        User user = validateAndGetUser(token);
+        Group group = groupRepository.findByGroupId(groupId)
+                .orElseThrow(() -> new GroupNotFoundException("group does not exist"));
+
+        boolean isGroupMember = group.getGroupMemberships().stream()
+                .anyMatch(membership -> membership.getUser().equals(user));
+
+        if(!isGroupMember) {
+            throw new UnauthorizedUserException("Only group members can get messages");
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
+        Page<Message> paginatedMessages = messageRepository.findByGroup(group, pageable);
+
+        return paginatedMessages.map(this::getGroupMessages);
+    }
+
+    private GroupMessagesGetterDto getGroupMessages(Message message) {
+        GroupMessagesGetterDto msg = new GroupMessagesGetterDto();
+        msg.setPublishDate(message.getCreatedAt());
+        msg.setMessage(message.getContent());
+        msg.setUserName(message.getSender().getFirstName()+" "+message.getSender().getLastName());
+
+        if(message.getImages() != null) {
+            List<String> imgs = message.getImages()
+                    .stream()
+                    .map(Image::getImageUrl)
+                    .collect(Collectors.toList());
+            msg.setImages(imgs);
+        }
+        if(message.getVideos() != null) {
+            List<String> vids = message.getVideos()
+                    .stream()
+                    .map(Video::getVideoLink)
+                    .collect(Collectors.toList());
+            msg.setVideos(vids);
+        }
+        return msg;
+    }
+
+    private Video createVideo(SendMessageInGroupDto sendMessageInGroupDto, Message message) {
+        if(sendMessageInGroupDto.getVideoUrl() != null && !sendMessageInGroupDto.getVideoUrl().isEmpty()) {
+            Video newVideo = new Video();
+            newVideo.setCreatedAt(LocalDateTime.now());
+            newVideo.setVideoLink(sendMessageInGroupDto.getVideoUrl());
+            newVideo.setMessage(message);
+
+            return videoRepository.save(newVideo);
+        }
+        return null;
+    }
+
+    private Image createImage(SendMessageInGroupDto sendMessageInGroupDto, Group group, Message message) {
+        if(sendMessageInGroupDto.getImageUrl() != null && !sendMessageInGroupDto.getImageUrl().isEmpty()) {
+            Image newImage = new Image();
+            newImage.setCreatedAt(LocalDateTime.now());
+            newImage.setImageUrl(sendMessageInGroupDto.getImageUrl());
+            newImage.setGroup(group);
+            newImage.setMessage(message);
+
+            return imageRepository.save(newImage);
+        }
+        return null;
+    }
+
+    private MediaType getMessageMediaType(SendMessageInGroupDto sendMessageInGroupDto) {
+        if(sendMessageInGroupDto.getImageUrl() == null && sendMessageInGroupDto.getVideoUrl() == null) {
+            return MediaType.TEXT;
+        }else if(sendMessageInGroupDto.getMessage() == null || sendMessageInGroupDto.getMessage().isEmpty())  {
+            return MediaType.MULTIMEDIA;
+        }
+        return MediaType.TEXT_WITH_MULTIMEDIA;
     }
 
     private void createNotificationForUser(User admin, User user, Group group, GroupNotificationType type) {

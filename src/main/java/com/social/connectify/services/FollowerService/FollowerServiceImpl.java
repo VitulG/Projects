@@ -3,6 +3,7 @@ package com.social.connectify.services.FollowerService;
 import com.social.connectify.dto.FollowersDto;
 import com.social.connectify.dto.FollowingDto;
 import com.social.connectify.dto.MutualFollowersDto;
+import com.social.connectify.enums.NotificationStatus;
 import com.social.connectify.exceptions.*;
 import com.social.connectify.models.*;
 import com.social.connectify.repositories.NotificationRepository;

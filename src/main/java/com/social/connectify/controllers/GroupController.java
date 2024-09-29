@@ -4,8 +4,11 @@ import com.social.connectify.dto.*;
 import com.social.connectify.exceptions.*;
 import com.social.connectify.services.GroupService.GroupService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -169,6 +172,38 @@ public class GroupController {
             return new ResponseEntity<>(notFoundException.getMessage(), HttpStatus.NOT_FOUND);
         } catch (Exception ex) {
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/send-message")
+    public ResponseEntity<String> sendMessage(@RequestHeader("Authorization") String token,
+                                            @RequestBody SendMessageInGroupDto messageDto) {
+        try {
+            String response = groupService.sendGroupMessage(token, messageDto);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (InvalidTokenException | UnauthorizedUserException securityException) {
+            return new ResponseEntity<>(securityException.getMessage(), HttpStatus.UNAUTHORIZED);
+        } catch (GroupNotFoundException groupNotFoundException) {
+            return new ResponseEntity<>(groupNotFoundException.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception ex) {
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/{groupId}/get-messages")
+    public ResponseEntity<Page<GroupMessagesGetterDto>> getMessages(@RequestHeader("Authorization") String token,
+                                                                           @PathVariable("groupId") Long groupId,
+                                                                           @RequestParam(value = "page", defaultValue = "0") int page,
+                                                                           @RequestParam(value = "size", defaultValue = "10") int size) {
+        try {
+            Page<GroupMessagesGetterDto> messages = groupService.getGroupMessages(token, groupId, page, size);
+            return new ResponseEntity<>(messages, HttpStatus.OK);
+        } catch (InvalidTokenException | UnauthorizedUserException securityException) {
+            return new ResponseEntity<>(new PageImpl<>(new ArrayList<>()), HttpStatus.UNAUTHORIZED);
+        } catch (GroupNotFoundException notFoundException) {
+            return new ResponseEntity<>(new PageImpl<>(new ArrayList<>()), HttpStatus.NOT_FOUND);
+        } catch (Exception ex) {
+            return new ResponseEntity<>(new PageImpl<>(new ArrayList<>()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

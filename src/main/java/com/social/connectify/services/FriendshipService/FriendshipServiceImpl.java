@@ -2,10 +2,11 @@ package com.social.connectify.services.FriendshipService;
 
 import com.social.connectify.dto.FriendRequestDto;
 import com.social.connectify.dto.FriendshipDto;
+import com.social.connectify.enums.FriendRequestStatus;
+import com.social.connectify.enums.NotificationStatus;
 import com.social.connectify.exceptions.FriendNotFoundException;
 import com.social.connectify.exceptions.FriendshipNotFoundException;
 import com.social.connectify.exceptions.InvalidTokenException;
-import com.social.connectify.exceptions.UserNotFoundException;
 import com.social.connectify.models.*;
 import com.social.connectify.repositories.FriendshipRepository;
 import com.social.connectify.repositories.NotificationRepository;

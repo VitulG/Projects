@@ -1,6 +1,7 @@
 package com.social.connectify.services.NotificationService;
 
 import com.social.connectify.dto.NotificationDto;
+import com.social.connectify.enums.NotificationStatus;
 import com.social.connectify.exceptions.InvalidTokenException;
 import com.social.connectify.exceptions.NotificationAlreadyMarkedException;
 import com.social.connectify.exceptions.NotificationNotFoundException;
@@ -8,7 +9,6 @@ import com.social.connectify.exceptions.UnauthorizedUserException;
 import com.social.connectify.models.*;
 import com.social.connectify.repositories.NotificationRepository;
 import com.social.connectify.repositories.TokenRepository;
-import com.social.connectify.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -16,9 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
