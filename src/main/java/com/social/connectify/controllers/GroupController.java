@@ -206,4 +206,19 @@ public class GroupController {
             return new ResponseEntity<>(new PageImpl<>(new ArrayList<>()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PatchMapping("/{groupId}/cancel-request")
+    public ResponseEntity<String> cancelRequest(@RequestHeader("Authorization") String token,
+                                               @PathVariable("groupId") Long groupId) {
+        try {
+            String response = groupService.cancelGroupRequest(token, groupId);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (InvalidTokenException securityException) {
+            return new ResponseEntity<>(securityException.getMessage(), HttpStatus.UNAUTHORIZED);
+        } catch (GroupNotFoundException | GroupMembershipNotFoundException notFoundException) {
+            return new ResponseEntity<>(notFoundException.getMessage(), HttpStatus.NOT_FOUND);
+        } catch(Exception ex) {
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

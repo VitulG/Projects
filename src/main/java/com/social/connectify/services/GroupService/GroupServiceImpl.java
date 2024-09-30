@@ -551,6 +551,29 @@ public class GroupServiceImpl implements GroupService {
         return paginatedMessages.map(this::getGroupMessages);
     }
 
+    @Override
+    @Transactional
+    public String cancelGroupRequest(String token, Long groupId) throws InvalidTokenException, GroupNotFoundException, GroupMembershipNotFoundException {
+        User user = validateAndGetUser(token);
+
+        Group group = groupRepository.findByGroupId(groupId)
+                .orElseThrow(() -> new GroupNotFoundException("group does not exist"));
+
+        GroupMembership userMembership = groupMembershipRepository.findGroupMembershipByUser(user)
+                .orElseThrow(() -> new GroupMembershipNotFoundException("membership does not exist"));
+
+        if(userMembership.isDeleted()) {
+            throw new GroupMembershipNotFoundException("membership not found");
+        }
+
+        userMembership.setUpdatedAt(LocalDateTime.now());
+        userMembership.setStatus(JoinGroupStatus.CANCELLED);
+        userMembership.setDeleted(true);
+        groupMembershipRepository.save(userMembership);
+
+        return "you withdrawn your request";
+    }
+
     private GroupMessagesGetterDto getGroupMessages(Message message) {
         GroupMessagesGetterDto msg = new GroupMessagesGetterDto();
         msg.setPublishDate(message.getCreatedAt());

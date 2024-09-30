@@ -19,4 +19,5 @@ public interface GroupService {
     String deleteGroup(String token, Long groupId) throws InvalidTokenException, GroupNotFoundException, UnauthorizedUserException;
     String sendGroupMessage(String token, SendMessageInGroupDto sendMessageInGroupDto) throws InvalidTokenException, GroupNotFoundException, UnauthorizedUserException;
     Page<GroupMessagesGetterDto> getGroupMessages(String token, Long groupId, int page, int size) throws InvalidTokenException, GroupNotFoundException, UnauthorizedUserException;
+    String cancelGroupRequest(String token, Long groupId) throws InvalidTokenException, GroupNotFoundException, GroupMembershipNotFoundException;
 }
