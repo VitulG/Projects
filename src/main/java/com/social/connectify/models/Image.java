@@ -29,4 +29,7 @@ public class Image extends BaseModel{
 
     @OneToOne
     private Group group;
+
+    @OneToOne
+    private Event event;
 }
