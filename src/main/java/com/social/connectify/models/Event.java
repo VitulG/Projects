@@ -8,13 +8,14 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Getter
 @Setter
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class Event {
+public class Event extends BaseModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long eventId;
@@ -26,10 +27,23 @@ public class Event {
     private String eventDescription;
     private String eventLocation;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     private Image eventCoverPhoto;
 
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
-    private List<EventAttendee> eventAttendees;
+    @ManyToMany
+    @JoinTable(
+            name = "event_users",
+            joinColumns = @JoinColumn(name = "event_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
+    private Set<User> attendees;
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.REMOVE)
+    private Set<EventAttendee> eventAttendees;
+
+    @ManyToMany(mappedBy = "groupEvents")
+    private Set<Group> groups;
+
+    @ManyToOne(cascade = CascadeType.REMOVE)
+    private User host;
 
 }

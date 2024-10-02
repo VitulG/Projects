@@ -46,4 +46,11 @@ public class Group extends BaseModel {
 
     @OneToOne
     private Image groupImage;
+
+    @ManyToMany
+    @JoinTable(
+            name = "group_events",
+            joinColumns = @JoinColumn(name = "group_id"),
+            inverseJoinColumns = @JoinColumn(name = "event_id"))
+    private Set<Event> groupEvents;
 }

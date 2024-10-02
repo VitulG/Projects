@@ -14,15 +14,12 @@ import java.time.LocalDateTime;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-public class EventAttendee {
+public class EventAttendee extends BaseModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long eventAttendeeId;
 
-    @ManyToOne
-    private User user;
-
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     private Event event;
 
     @Enumerated(EnumType.STRING)

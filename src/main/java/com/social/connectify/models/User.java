@@ -94,6 +94,9 @@ public class User extends BaseModel{
     @OneToMany(cascade = CascadeType.ALL)
     private List<GroupMembership> groupMemberships;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<EventAttendee> events;
+    @ManyToMany(mappedBy = "attendees")
+    private Set<Event> userEvents;
+
+    @OneToMany(mappedBy = "host", cascade = CascadeType.ALL)
+    private List<Event> eventsToHost;
 }

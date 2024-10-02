@@ -1,6 +1,7 @@
 package com.social.connectify.advice;
 
 import com.social.connectify.exceptions.EventCreationException;
+import com.social.connectify.exceptions.EventNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -11,6 +12,11 @@ public class EventAdvice {
     @ExceptionHandler(EventCreationException.class)
     public ResponseEntity<String> handleEventCreationException() {
         return new ResponseEntity<>("Failed to create event", HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(EventNotFoundException.class)
+    public ResponseEntity<String> handleEventNotFoundException() {
+        return new ResponseEntity<>("Event not found", HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(Exception.class)

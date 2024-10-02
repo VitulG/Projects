@@ -1,13 +1,13 @@
 package com.social.connectify.services.EventService;
 
 import com.social.connectify.dto.CreateEventDto;
+import com.social.connectify.dto.SendInvitationGroupRequestDto;
+import com.social.connectify.dto.UserEventsDto;
 import com.social.connectify.enums.EventUserRole;
 import com.social.connectify.enums.EventVisibility;
+import com.social.connectify.enums.GroupUserRole;
 import com.social.connectify.enums.NotificationStatus;
-import com.social.connectify.exceptions.EventCreationException;
-import com.social.connectify.exceptions.GroupNotFoundException;
-import com.social.connectify.exceptions.InvalidTokenException;
-import com.social.connectify.exceptions.UserNotFoundException;
+import com.social.connectify.exceptions.*;
 import com.social.connectify.models.*;
 import com.social.connectify.repositories.*;
 import com.social.connectify.validations.EventCreationValidator;
@@ -16,10 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -30,11 +27,12 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final EventAttendeeRepository eventAttendeeRepository;
     private final NotificationRepository notificationRepository;
+    private final GroupRepository groupRepository;
 
     @Autowired
     public EventServiceImpl(TokenRepository tokenRepository, EventCreationValidator eventCreation, ImageRepository imageRepository,
                             UserRepository userRepository, EventRepository eventRepository, EventAttendeeRepository eventAttendeeRepository,
-                            NotificationRepository notificationRepository) {
+                            NotificationRepository notificationRepository, GroupRepository groupRepository) {
         this.tokenRepository = tokenRepository;
         this.eventCreationValidator = eventCreation;
         this.imageRepository = imageRepository;
@@ -42,6 +40,7 @@ public class EventServiceImpl implements EventService {
         this.eventRepository = eventRepository;
         this.eventAttendeeRepository = eventAttendeeRepository;
         this.notificationRepository = notificationRepository;
+        this.groupRepository = groupRepository;
     }
 
     @Override
@@ -51,70 +50,185 @@ public class EventServiceImpl implements EventService {
         eventCreationValidator.validateEventCreationDetails(createEventDto);
 
         Event event = new Event();
+        event.setEventTitle(createEventDto.getTitle());
         event.setEventDescription(createEventDto.getDescription());
         event.setEventLocation(createEventDto.getLocation());
-        event.setEventTitle(createEventDto.getTitle());
-        EventVisibility visibility = getVisibility(createEventDto.getEventVisibility());
-        event.setVisibility(visibility);
+        event.setStartTime(createEventDto.getStartTime());
+        event.setVisibility(getVisibility(createEventDto.getEventVisibility()));
+        event.setEndTime(createEventDto.getEndTime());
+        event.setCreatedAt(LocalDateTime.now());
+        event.setHost(user);
+
+        if(user.getUserEvents() == null) {
+            user.setUserEvents(new HashSet<>());
+        }
+        user.getUserEvents().add(event);
+
+        if(user.getEventsToHost() == null) {
+            user.setEventsToHost(new ArrayList<>());
+        }
+        user.getEventsToHost().add(event);
+
+        if(event.getAttendees() == null) {
+            event.setAttendees(new HashSet<>());
+        }
+        event.getAttendees().add(user);
+
+        Image eventCoverImage = createEventCoverImage(event, createEventDto.getImage());
+        if(eventCoverImage != null) {
+            event.setEventCoverPhoto(eventCoverImage);
+        }
 
         EventAttendee eventAttendee = new EventAttendee();
-        eventAttendeeRepository.save(eventAttendee);
-        eventAttendee.setEvent(event);
         eventAttendee.setRsvp(LocalDateTime.now());
-        eventAttendee.setUser(user);
         eventAttendee.setUserRole(EventUserRole.HOST);
-
-        if(user.getEvents() == null) {
-            user.setEvents(new ArrayList<>());
-        }
-        user.getEvents().add(eventAttendee);
-        userRepository.save(user);
+        eventAttendee.setEvent(event);
+        eventAttendee.setCreatedAt(LocalDateTime.now());
+        eventAttendeeRepository.save(eventAttendee);
 
         if(event.getEventAttendees() == null) {
-            event.setEventAttendees(new ArrayList<>());
+            event.setEventAttendees(new HashSet<>());
         }
         event.getEventAttendees().add(eventAttendee);
 
-        event.setStartTime(createEventDto.getStartTime());
-        event.setEndTime(createEventDto.getEndTime());
-        createEventCoverImage(event, createEventDto.getImage());
         eventRepository.save(event);
+        // set attendees and co hosts
         assignCoHostToEvent(event, createEventDto.getCo_hosts(), user);
 
-        return "event "+event.getEventTitle()+" created";
+        return "Event "+event.getEventTitle()+" created";
     }
 
-    private void createEventCoverImage(Event event, String imageUrl) {
+    @Override
+    public String sendInvitationToGroups(String token, Long eventId, SendInvitationGroupRequestDto groups) throws InvalidTokenException, EventNotFoundException, UnauthorizedUserException, IllegalGroupListException, GroupNotFoundException {
+        User user = validAndGetUser(token);
+        Event event = eventRepository.findEventByEventId(eventId)
+                .orElseThrow(() -> new EventNotFoundException("Event does not exist"));
+
+        boolean isAttendee = event.getAttendees()
+                .stream().findAny()
+                .isEmpty();
+
+        if(!isAttendee) {
+            throw new UnauthorizedUserException("event can be shared only by host or by attendees only");
+        }
+
+        if(groups.getGroupIds() == null || groups.getGroupIds().isEmpty()) {
+            throw new IllegalGroupListException("at least one group is required");
+        }
+
+        sendGroupInvitation(groups.getGroupIds(), user, event);
+
+        return "invitation sent";
+
+    }
+
+    @Override
+    public List<UserEventsDto> getUserEvents(String token) throws InvalidTokenException {
+        User user = validAndGetUser(token);
+
+        List<UserEventsDto> userEventsDtos = new ArrayList<>();
+
+        for(Event event : user.getUserEvents()) {
+            if(!event.getEndTime().isBefore(LocalDateTime.now())) {
+                UserEventsDto eventDto = getEventDto(event);
+                userEventsDtos.add(eventDto);
+            }
+        }
+        return userEventsDtos;
+
+    }
+
+    @Override
+    public List<UserEventsDto> getUserHostEvents(String token) throws InvalidTokenException {
+        User user = validAndGetUser(token);
+
+        List<UserEventsDto> userEventsHostDtos = new ArrayList<>();
+
+        for(Event event : user.getEventsToHost()) {
+            if(!event.getEndTime().isBefore(LocalDateTime.now())) {
+                UserEventsDto userEvents = getEventDto(event);
+                userEventsHostDtos.add(userEvents);
+            }
+        }
+        return userEventsHostDtos;
+    }
+
+    private UserEventsDto getEventDto(Event event) {
+        UserEventsDto eventDto = new UserEventsDto();
+        eventDto.setEventName(event.getEventTitle());
+        eventDto.setEventDescription(event.getEventDescription());
+        eventDto.setStartTime(event.getStartTime());
+        eventDto.setEndTime(event.getEndTime());
+        eventDto.setLocation(event.getEventLocation());
+        eventDto.setImageUrl(event.getEventCoverPhoto().getImageUrl());
+        return eventDto;
+    }
+
+    private void sendGroupInvitation(List<Long> groupIds, User sender, Event event) throws GroupNotFoundException {
+        for(Long groupId : groupIds) {
+            Group group = groupRepository.findByGroupId(groupId)
+                    .orElseThrow(() -> new GroupNotFoundException("Group does not exist"));
+
+            if(group.getGroupEvents() == null) {
+                group.setGroupEvents(new HashSet<>());
+            }
+            group.getGroupEvents().add(event);
+
+            List<GroupMembership> admins = group.getGroupMemberships()
+                    .stream()
+                    .filter(members -> members.getRole() == GroupUserRole.ADMIN)
+                    .toList();
+
+            if(!admins.isEmpty()) {
+                for(GroupMembership admin : admins) {
+                    createNotificationForCoHost(event, admin.getUser(), sender);
+                }
+            }
+        }
+    }
+
+    private void createNotificationForGroupAdmins(Event event, User groupAdmin, User sender) {
+        Notification notification = new Notification();
+        notification.setCreatedAt(LocalDateTime.now());
+        notification.setStatus(NotificationStatus.UNREAD);
+        notification.setUser(groupAdmin);
+        notification.setMessage(sender.getFirstName()+" "+sender.getLastName()+" has sent the invitation of the event "
+            + event.getEventTitle()+" to your group.");
+        notificationRepository.save(notification);
+    }
+
+    private Image createEventCoverImage(Event event, String imageUrl) {
         if(imageUrl != null && !imageUrl.isEmpty()) {
             Image image = new Image();
             image.setImageUrl(imageUrl);
             image.setEvent(event);
             image.setCreatedAt(LocalDateTime.now());
             event.setEventCoverPhoto(image);
-            imageRepository.save(image);
+            return imageRepository.save(image);
         }
+        return null;
     }
 
     private void assignCoHostToEvent(Event event, List<String> coHostEmails, User admin) throws UserNotFoundException {
         if(coHostEmails != null && !coHostEmails.isEmpty()) {
-            for(String email : coHostEmails) {
-                User user = userRepository.findUserByEmail(email)
-                        .orElseThrow(() -> new UserNotFoundException("user not found"));
-
-                if(user.getEvents() == null) {
-                    user.setEvents(new ArrayList<>());
-                }
+            for(String userEmail : coHostEmails) {
+                User user = userRepository.findUserByEmail(userEmail)
+                        .orElseThrow(() -> new UserNotFoundException("user does not exist"));
                 EventAttendee eventAttendee = new EventAttendee();
-                eventAttendee.setUser(user);
+                eventAttendee.setCreatedAt(LocalDateTime.now());
                 eventAttendee.setRsvp(LocalDateTime.now());
                 eventAttendee.setUserRole(EventUserRole.CO_HOST);
                 eventAttendee.setEvent(event);
                 eventAttendeeRepository.save(eventAttendee);
 
-                createNotificationForCoHost(event, admin, user);
+                event.getEventAttendees().add(eventAttendee);
+                event.getAttendees().add(user);
 
-                user.getEvents().add(eventAttendee);
-                userRepository.save(user);
+                if(user.getUserEvents() == null) {
+                    user.setUserEvents(new HashSet<>());
+                }
+                user.getUserEvents().add(event);
+                createNotificationForCoHost(event, admin, user);
             }
         }
     }
