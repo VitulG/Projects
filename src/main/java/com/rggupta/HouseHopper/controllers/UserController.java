@@ -1,16 +1,21 @@
 package com.rggupta.HouseHopper.controllers;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.rggupta.HouseHopper.dto.LoginRequestDto;
+import com.rggupta.HouseHopper.dto.SignupRequestDto;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
-    @GetMapping("/signup")
-    public void signupUser() {
-        System.out.println("hello");
+    @PostMapping("/login")
+    public ResponseEntity<String> loginUser(@RequestBody LoginRequestDto loginRequestDto) {
+        return null;
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<String> signupUser(@RequestBody SignupRequestDto signupRequestDto) {
+        return null;
     }
 }

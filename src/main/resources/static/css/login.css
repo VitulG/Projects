@@ -1,0 +1,143 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f7f8fc;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 400px;
+    margin: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.form-box {
+    text-align: center;
+    padding: 20px;
+}
+
+h1 {
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+    color: #333;
+}
+
+/* Input Fields */
+.input-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.input-group label {
+    font-size: 0.9rem;
+    color: #555;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.input-group input:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* Buttons */
+button, a {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    text-align: center;
+    text-decoration: none;
+}
+
+.login-btn {
+    background-color: #007bff;
+    color: #fff;
+    font-weight: bold;
+}
+
+.login-btn:hover {
+    background-color: #0056b3;
+}
+
+.google-btn {
+    background-color: #db4437;
+    color: #fff;
+    font-weight: bold;
+}
+
+.google-btn:hover {
+    background-color: #a8352a;
+}
+
+.facebook-btn {
+    background-color: #3b5998;
+    color: #fff;
+    font-weight: bold;
+}
+
+.facebook-btn:hover {
+    background-color: #2b4272;
+}
+
+/* Divider */
+.divider {
+    position: relative;
+    margin: 20px 0;
+    font-size: 0.9rem;
+    color: #888;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    position: absolute;
+    width: 40%;
+    height: 1px;
+    background-color: #ddd;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.divider::before {
+    left: 0;
+}
+
+.divider::after {
+    right: 0;
+}
+
+/* Register Link */
+.register-link {
+    margin-top: 10px;
+    font-size: 0.9rem;
+}
+
+.register-link a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.register-link a:hover {
+    text-decoration: underline;
+}
