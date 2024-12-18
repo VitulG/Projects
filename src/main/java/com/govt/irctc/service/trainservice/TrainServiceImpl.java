@@ -39,7 +39,7 @@ public class TrainServiceImpl implements TrainService{
     @Override
     public String addTrain(TrainDto trainDto, String token) throws TrainCreationException, InvalidTokenException, UnauthorizedUserException {
 
-        Optional<Token> optionalToken = tokenRepository.findByToken(token);
+        Optional<Token> optionalToken = tokenRepository.findByTokenValue(token);
 
         if(optionalToken.isEmpty()) {
             throw new InvalidTokenException("token is invalid");
@@ -61,8 +61,8 @@ public class TrainServiceImpl implements TrainService{
         }
 
         Train train = new Train();
-        train.setTrainDestinationCity(trainDto.getTrainDestinationCity());
-        train.setTrainArrivalCity(trainDto.getTrainArrivalCity());
+//        train.setTrainDestinationCity(trainDto.getTrainDestinationCity());
+//        train.setTrainArrivalCity(trainDto.getTrainArrivalCity());
 
         if(!trainDetailsValidation.validateTrainNumber(trainDto.getTrainNumber())) {
             throw new TrainCreationException("Invalid train number");
@@ -99,7 +99,7 @@ public class TrainServiceImpl implements TrainService{
         if(optionalTrain.get().isDeleted()) {
             throw new TrainNotFoundException("Train doesn't exists");
         }
-        return optionalTrain.get().convertToDto();
+        return null;
     }
 
     @Override
@@ -117,7 +117,7 @@ public class TrainServiceImpl implements TrainService{
 
         for(Train train : trains) {
             if(!train.isDeleted()) {
-                trainsDto.add(train.convertToDto());
+
             }
         }
         return trainsDto;
@@ -127,7 +127,7 @@ public class TrainServiceImpl implements TrainService{
     public String updateTrainById(Long trainNumber, TrainDto trainDto, String token) throws TrainNotFoundException,
             InvalidTokenException, UnauthorizedUserException {
 
-        Optional<Token> optionalToken = tokenRepository.findByToken(token);
+        Optional<Token> optionalToken = tokenRepository.findByTokenValue(token);
 
         if(optionalToken.isEmpty()) {
             throw new InvalidTokenException("token is invalid");
@@ -149,9 +149,9 @@ public class TrainServiceImpl implements TrainService{
 
         Train train = optionalTrain.get();
 
-        train.setTrainDestinationCity(trainDto.getTrainDestinationCity());
-        train.setTrainNumber(trainDto.getTrainNumber());
-        train.setTrainArrivalCity(trainDto.getTrainArrivalCity());
+//        train.setTrainDestinationCity(trainDto.getTrainDestinationCity());
+//        train.setTrainNumber(trainDto.getTrainNumber());
+//        train.setTrainArrivalCity(trainDto.getTrainArrivalCity());
         train.setTrainName(trainDto.getTrainName());
         train.setPlatformNumber(trainDto.getPlatformNumber());
         train.setTrainType(TrainType.valueOf(trainDto.getTrainType().toUpperCase()));
@@ -166,7 +166,7 @@ public class TrainServiceImpl implements TrainService{
 
     @Override
     public String deleteTrainByTrainNumber(Long trainNumber, String token) throws TrainNotFoundException, InvalidTokenException, UnauthorizedUserException {
-        Optional<Token> optionalToken = tokenRepository.findByToken(token);
+        Optional<Token> optionalToken = tokenRepository.findByTokenValue(token);
 
         if(optionalToken.isEmpty() || !tokenValidation.isTokenValid(token)) {
             throw new InvalidTokenException("token is invalid");

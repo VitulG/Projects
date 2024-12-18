@@ -14,12 +14,12 @@ import java.util.Date;
 @AllArgsConstructor
 @Entity
 public class Token extends BaseModel{
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String token;
+    @Column(nullable = false, unique = true)
+    private String tokenValue;
+
     @ManyToOne
     private User userTokens;
-    private Date expireAt;
 
+    @Column(nullable = false)
+    private Date tokenValidity;
 }

@@ -13,17 +13,17 @@ import com.govt.irctc.enums.*;
 @AllArgsConstructor
 @Entity
 public class Payment extends BaseModel{
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long paymentId;
+    private String transactionNumber; // uuid for each transaction
 
-    private String transactionId;
-
-    @OneToOne
+    @ManyToOne
     private Booking booking;
 
+    @Enumerated(EnumType.STRING)
     private PaymentStatus status;
-    private RefundStatus refundStatus;
-    private String token;
 
+    @Enumerated(EnumType.STRING)
+    private RefundStatus refundStatus;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod method;
 }

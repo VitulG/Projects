@@ -1,7 +1,6 @@
 package com.govt.irctc.service.paymentservice;
 
-import com.govt.irctc.enums.PaymentStatus;
-import com.govt.irctc.enums.RefundStatus;
+
 import com.govt.irctc.exceptions.BookingExceptions.BookingNotFoundException;
 import com.govt.irctc.exceptions.PaymentExceptions.PaymentLinkGenerationException;
 import com.govt.irctc.exceptions.PaymentExceptions.PaymentNotFoundException;
@@ -36,7 +35,7 @@ public class PaymentServiceImpl implements PaymentService{
 
     @Override
     public String initiatePayment(Long pnr) throws BookingNotFoundException, PaymentLinkGenerationException, InvalidTokenException {
-        Optional<Booking> booking = bookingRepository.findByPnr(pnr);
+        Optional<Booking> booking = Optional.empty();
 
         if(booking.isEmpty()) {
             throw new BookingNotFoundException("Booking not found for this PNR");
@@ -44,7 +43,7 @@ public class PaymentServiceImpl implements PaymentService{
 
         Booking existingBooking = booking.get();
 
-        if(tokenValidation.isTokenValid(existingBooking.getToken())) {
+        if(tokenValidation.isTokenValid(existingBooking.getPnr())) {
             throw new InvalidTokenException("Invalid token");
         }
         Optional<Payment> paymentExists = paymentRepository.findByBookingId(existingBooking.getId());
@@ -61,11 +60,11 @@ public class PaymentServiceImpl implements PaymentService{
         }
 
         Payment payment = new Payment();
-        payment.setTransactionId(generateUniqueTransactionId());
-        payment.setBooking(existingBooking);
-        payment.setStatus(PaymentStatus.INITIATED);
-        payment.setCreatedAt(LocalDateTime.now());
-        payment.setRefundStatus(RefundStatus.NA);
+//        payment.setTransactionNumber(generateUniqueTransactionId());
+//        payment.setBooking(existingBooking);
+//        payment.setStatus(PaymentStatus.INITIATED);
+//        payment.setCreatedAt(LocalDateTime.now());
+//        payment.setRefundStatus(RefundStatus.NA);
 
         paymentRepository.save(payment);
         return paymentLink;
@@ -77,21 +76,21 @@ public class PaymentServiceImpl implements PaymentService{
 
     @Override
     public String getPaymentStatus(Long transactionId) throws PaymentNotFoundException {
-        Optional<Payment> payment = paymentRepository.findByPaymentId(transactionId);
+        Optional<Payment> payment = paymentRepository.findById(transactionId);
 
         if(payment.isEmpty()) {
             throw new PaymentNotFoundException("payment not found");
         }
-        return payment.get().getStatus().toString();
+        return null;
     }
 
 
     @Override
     public String getPaymentRefundStatus(Long transactionId) throws PaymentNotFoundException {
-        Optional<Payment> payment = paymentRepository.findByPaymentId(transactionId);
+        Optional<Payment> payment = paymentRepository.findById(transactionId);
         if(payment.isEmpty()) {
             throw new PaymentNotFoundException("payment not found");
         }
-        return payment.get().getRefundStatus().toString();
+        return null;
     }
 }

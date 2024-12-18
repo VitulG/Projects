@@ -154,11 +154,11 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDto getBookingByPnrNumber(Long pnr) throws BookingNotFoundException {
-        Optional<Booking> booking = bookingRepository.findByPnr(pnr);
+        Optional<Booking> booking = Optional.empty();
         if(booking.isEmpty()) {
             throw new BookingNotFoundException("booking does not exists with this pnr");
         }
-        return booking.get().convertToBookingDto();
+        return null;
     }
 
     @Override
@@ -177,7 +177,7 @@ public class BookingServiceImpl implements BookingService {
         List<BookingDto> bookingDtos = new ArrayList<>();
 
         for(Booking booking : bookings) {
-            bookingDtos.add(booking.convertToBookingDto());
+
         }
         return bookingDtos;
     }
@@ -185,7 +185,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public String cancelTickets(Long pnr) throws BookingNotFoundException {
-        Optional<Booking> booking = bookingRepository.findByPnr(pnr);
+        Optional<Booking> booking = Optional.empty();
         if(booking.isEmpty()) {
             throw new BookingNotFoundException("Booking is not exists");
         }
@@ -197,28 +197,28 @@ public class BookingServiceImpl implements BookingService {
         existingBooking.setTicketStatus(TicketStatus.CANCELLED);
         existingBooking.setPaymentStatus(PaymentStatus.CANCELLED);
 
-        Seats trainSeats  = existingBooking.getTrains().getTrainSeats().get(0);
-        trainSeats.setTotalNumberOfSeats(trainSeats.getTotalNumberOfSeats() + existingBooking.getNumberOfPassengers());
-        bookingRepository.save(existingBooking);
-
-        switch (existingBooking.getSeatType()) {
-            case FIRST_AC:
-                trainSeats.setOneAcSeats(trainSeats.getOneAcSeats() + existingBooking.getNumberOfPassengers());
-                break;
-            case SECOND_AC:
-                trainSeats.setTwoAcSeats(trainSeats.getTwoAcSeats() + existingBooking.getNumberOfPassengers());
-                break;
-            case THIRD_AC:
-                trainSeats.setThreeAcSeats(trainSeats.getThreeAcSeats() + existingBooking.getNumberOfPassengers());
-                break;
-            case SLEEPER:
-                trainSeats.setSleeperSeats(trainSeats.getSleeperSeats() + existingBooking.getNumberOfPassengers());
-                break;
-            case GENERAL:
-                trainSeats.setGeneralSeats(trainSeats.getGeneralSeats() + existingBooking.getNumberOfPassengers());
-                break;
-        }
-        seatRepository.save(trainSeats);
+//        Seats trainSeats  = existingBooking.getTrains().getTrainSeats().get(0);
+//        trainSeats.setTotalNumberOfSeats(trainSeats.getTotalNumberOfSeats() + existingBooking.getNumberOfPassengers());
+//        bookingRepository.save(existingBooking);
+//
+//        switch (existingBooking.getSeatType()) {
+//            case FIRST_AC:
+//                trainSeats.setOneAcSeats(trainSeats.getOneAcSeats() + existingBooking.getNumberOfPassengers());
+//                break;
+//            case SECOND_AC:
+//                trainSeats.setTwoAcSeats(trainSeats.getTwoAcSeats() + existingBooking.getNumberOfPassengers());
+//                break;
+//            case THIRD_AC:
+//                trainSeats.setThreeAcSeats(trainSeats.getThreeAcSeats() + existingBooking.getNumberOfPassengers());
+//                break;
+//            case SLEEPER:
+//                trainSeats.setSleeperSeats(trainSeats.getSleeperSeats() + existingBooking.getNumberOfPassengers());
+//                break;
+//            case GENERAL:
+//                trainSeats.setGeneralSeats(trainSeats.getGeneralSeats() + existingBooking.getNumberOfPassengers());
+//                break;
+//        }
+//        seatRepository.save(trainSeats);
         return "your ticket has been cancelled";
     }
 }

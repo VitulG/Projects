@@ -10,16 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SeatDto {
-    private Long trainNumber;
+    private String seatType;
     private int totalNumberOfSeats;
-    private int oneAcSeats;
-    private int twoAcSeats;
-    private int threeAcSeats;
-    private int sleeperSeats;
-    private int generalSeats;
-    private double firstAcPrice;
-    private double secondAcPrice;
-    private double thirdAcPrice;
-    private double sleeperPrice;
-    private double generalPrice;
+    private double price;
 }

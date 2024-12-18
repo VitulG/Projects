@@ -18,7 +18,7 @@ public class TokenValidation {
     }
 
     public boolean isTokenValid(String token) {
-        Optional<Token> existingToken = tokenRepository.findByToken(token);
+        Optional<Token> existingToken = tokenRepository.findByTokenValue(token);
 
         if (existingToken.isEmpty()) {
             return false;
@@ -26,6 +26,6 @@ public class TokenValidation {
 
         Token token1 = existingToken.get();
 
-        return !token1.getExpireAt().before(new Date()) && !token1.isDeleted();
+        return !token1.getTokenValidity().before(new Date()) && !token1.isDeleted();
     }
 }

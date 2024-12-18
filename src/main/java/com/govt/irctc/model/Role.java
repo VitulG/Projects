@@ -14,14 +14,6 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 public class Role extends BaseModel{
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+    @Column(unique = true, nullable = false)
     private String name;
-
-    public Role(String user) {
-        this.name = user;
-    }
 }

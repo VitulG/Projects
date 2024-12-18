@@ -1,9 +1,8 @@
 package com.govt.irctc.enums;
 
 public enum SeatType {
-    FIRST_AC,
-    SECOND_AC,
-    THIRD_AC,
-    SLEEPER,
-    GENERAL;
+    UPPER,
+    LOWER,
+    SIDE_UPPER,
+    SIDE_LOWER
 }

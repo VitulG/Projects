@@ -7,7 +7,6 @@ import com.govt.irctc.service.userService.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,7 +22,6 @@ public class UserController {
     }
 
     @RequestMapping(value = "/signup", method = RequestMethod.POST)
-    @Transactional
     public ResponseEntity<String> signUpUser(@RequestBody UserSignupDetailsDto userSignupDetailsDto) {
         try {
             String message = userService.addUser(userSignupDetailsDto);
@@ -32,7 +30,6 @@ public class UserController {
             }
             return new ResponseEntity<>(message, HttpStatus.CREATED);
         } catch(UserCreationException | UserAlreadyExistsException userException) {
-            // logger
             return new ResponseEntity<>(userException.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception ex) {
             // logger
@@ -41,7 +38,6 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    @Transactional
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginDetailsDto loginDetailsDto) {
         try {
             LoginResponseDto response = userService.getAndValidateUser(loginDetailsDto);
@@ -134,7 +130,6 @@ public class UserController {
     }
 
     @RequestMapping(value = "/update-user/{email}", method = RequestMethod.PUT)
-    @Transactional
     public ResponseEntity<String> updateUserById(@PathVariable("email") String email,
                                                  @RequestBody UserDto userDto,
                                                  @RequestHeader("Authorization") String token) {
@@ -160,7 +155,6 @@ public class UserController {
     }
 
     @DeleteMapping("/delete-user/{email}")
-    @Transactional
     public ResponseEntity<String> deleteUserById(@PathVariable("email") String email,
                                                  @RequestHeader("Authorization") String token) {
         try {

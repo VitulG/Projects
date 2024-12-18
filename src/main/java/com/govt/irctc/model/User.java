@@ -20,18 +20,19 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class User extends BaseModel{
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
     private String userName;
     private String userEmail;
 
     private int userAge;
-    private char userGender;
+    private String userGender;
     private Long userPhoneNumber;
     private String hashedPassword;
-    private String userAddress;
+    private String profilePictureUrl;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Address> userAddresses;
+
     private Date userDob;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.DETACH, CascadeType.MERGE,
@@ -44,22 +45,4 @@ public class User extends BaseModel{
     @OneToMany(mappedBy = "userBookings", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
     private List<Booking> userBookings;
 
-    public UserDto convertToDto() {
-        UserDto userDto = new UserDto();
-        userDto.setUserName(userName);
-        userDto.setUserEmail(userEmail);
-        userDto.setUserAge(userAge);
-        userDto.setUserGender(userGender);
-        userDto.setUserPhoneNumber(userPhoneNumber);
-        userDto.setUserAddress(userAddress);
-        userDto.setUserDob(userDob);
-
-        List<BookingDto> userBookingDtos = new ArrayList<BookingDto>();
-
-        for(Booking booking : userBookings) {
-            userBookingDtos.add(booking.convertToBookingDto());
-        }
-        userDto.setUserBookings(userBookingDtos);
-        return userDto;
-    }
 }

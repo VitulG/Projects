@@ -1,7 +1,6 @@
 package com.govt.irctc.model;
 
-import com.govt.irctc.dto.SeatDto;
-import com.govt.irctc.dto.TrainDto;
+import com.govt.irctc.enums.TrainStatus;
 import com.govt.irctc.enums.TrainType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -9,10 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.sql.Time;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -21,44 +17,33 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Train extends BaseModel{
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     private String trainName;
+
+    @Enumerated(EnumType.STRING)
     private TrainType trainType;
+
     private Long trainNumber;
-    private String trainArrivalCity;
-    private String trainDestinationCity;
+
+    private String arrivalCity;
+    private String destinationCity;
+
     private LocalTime startTime;
     private LocalTime endTime;
+
     private int platformNumber;
+    private int trainDuration;
+    private double totalDistance;
 
-    @OneToMany(mappedBy = "trains", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
-    List<Booking> bookings;
+    @Enumerated(EnumType.STRING)
+    private TrainStatus trainStatus;
 
-    @OneToMany(mappedBy = "train", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
-    List<Seats> trainSeats;
+    @OneToMany(mappedBy = "trains", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Booking> bookings;
 
-    public TrainDto convertToDto() {
-        TrainDto trainDto = new TrainDto();
-        trainDto.setTrainName(trainName);
-        trainDto.setTrainType(trainType.toString());
-        trainDto.setTrainNumber(trainNumber);
-        trainDto.setTrainArrivalCity(trainArrivalCity);
-        trainDto.setTrainDestinationCity(trainDestinationCity);
-        trainDto.setStartTime(startTime);
-        trainDto.setEndTime(endTime);
-        trainDto.setPlatformNumber(platformNumber);
+    @OneToMany(mappedBy = "train", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Compartment> trainCompartments;
 
-        List<SeatDto> seatDto = new ArrayList<>();
+    @OneToMany(mappedBy = "train", cascade = CascadeType.ALL)
+    private List<Route> trainRoutes;
 
-        for(Seats seat : trainSeats) {
-            seatDto.add(seat.convertToDto());
-        }
-
-        trainDto.setSeats(seatDto);
-
-        return trainDto;
-    }
 }

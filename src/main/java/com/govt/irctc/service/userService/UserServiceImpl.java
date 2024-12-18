@@ -82,9 +82,9 @@ public class UserServiceImpl implements UserService {
         newUser.setUserDob(userSignupDetailsDto.getUserDob());
         newUser.setUserName(userSignupDetailsDto.getUserName());
         newUser.setUserEmail(userSignupDetailsDto.getUserEmail());
-        newUser.setUserAddress(userSignupDetailsDto.getUserAddress());
-        newUser.setUserAge(userSignupDetailsDto.getUserAge());
-        newUser.setUserGender(userSignupDetailsDto.getUserGender());
+//        newUser.setUserAddress(userSignupDetailsDto.getUserAddress());
+//        newUser.setUserAge(userSignupDetailsDto.getUserAge());
+//        newUser.setUserGender(userSignupDetailsDto.getUserGender());
         newUser.setUserPhoneNumber(userSignupDetailsDto.getUserPhoneNumber());
         newUser.setCreatedAt(LocalDateTime.now());
         newUser.setHashedPassword(bCryptPasswordEncoder.encode(userSignupDetailsDto.getPassword()));
@@ -107,7 +107,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String logoutUser(String token) throws TokenNotFoundException {
-        Optional<Token> getToken = tokenRepository.findByToken(token);
+        Optional<Token> getToken = tokenRepository.findByTokenValue(token);
 
         if(getToken.isEmpty()) {
             throw new TokenNotFoundException("token not found");
@@ -131,12 +131,12 @@ public class UserServiceImpl implements UserService {
             throw new InvalidTokenException("Invalid token");
         }
 
-        Optional<Token> getToken = tokenRepository.findByToken(token);
+        Optional<Token> getToken = tokenRepository.findByTokenValue(token);
         if(getToken.isEmpty()) {
             throw new TokenNotFoundException("token not found");
         }
         Token existingToken = getToken.get();
-        return existingToken.getUserTokens().convertToDto();
+        return null;
     }
 
     @Override
@@ -161,7 +161,6 @@ public class UserServiceImpl implements UserService {
         LoginResponseDto loginResponseDto = new LoginResponseDto();
         loginResponseDto.setName(user.getUserName());
         loginResponseDto.setEmail(user.getUserEmail());
-        loginResponseDto.setToken(token.getToken());
 
         return loginResponseDto;
     }
@@ -170,14 +169,12 @@ public class UserServiceImpl implements UserService {
         String token = UUID.randomUUID().toString();
         Token newToken = new Token();
 
-        newToken.setToken(token);
         newToken.setCreatedAt(LocalDateTime.now());
         newToken.setUserTokens(user);
 
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.MONTH, 1);
 
-        newToken.setExpireAt(calendar.getTime());
 
         return newToken;
     }
@@ -203,12 +200,12 @@ public class UserServiceImpl implements UserService {
         if(user.get().isDeleted()) {
             throw new UserNotFoundException("user doesn't exists");
         }
-        return user.get().convertToDto();
+        return null;
     }
 
     @Override
     public List<UserDto> getAllUsers(String token) throws InvalidTokenException, UnauthorizedUserException {
-        Optional<Token> getToken = tokenRepository.findByToken(token);
+        Optional<Token> getToken = tokenRepository.findByTokenValue(token);
 
         if(getToken.isEmpty()) {
             throw new InvalidTokenException("token is invalid");
@@ -232,7 +229,7 @@ public class UserServiceImpl implements UserService {
 
         for(User u : users) {
             if(!u.isDeleted()) {
-                userDtos.add(u.convertToDto());
+
             }
         }
         return userDtos;
@@ -247,7 +244,7 @@ public class UserServiceImpl implements UserService {
             throw new UserNotFoundException("user not exists");
         }
 
-        Optional<Token> getToken = tokenRepository.findByToken(token);
+        Optional<Token> getToken = tokenRepository.findByTokenValue(token);
 
         if(getToken.isEmpty()) {
             throw new InvalidTokenException("token doesn't exists");
@@ -267,8 +264,8 @@ public class UserServiceImpl implements UserService {
         existingUser.setUserName(updatedUser.getUserName());
         existingUser.setUserEmail(updatedUser.getUserEmail());
         existingUser.setUserAge(updatedUser.getUserAge());
-        existingUser.setUserAddress(updatedUser.getUserAddress());
-        existingUser.setUserGender(updatedUser.getUserGender());
+//        existingUser.setUserAddress(updatedUser.getUserAddress());
+//        existingUser.setUserGender(updatedUser.getUserGender());
         existingUser.setUserPhoneNumber(updatedUser.getUserPhoneNumber());
         existingUser.setUpdatedAt(LocalDateTime.now());
 
@@ -286,7 +283,7 @@ public class UserServiceImpl implements UserService {
             throw new UserNotFoundException("user doesn't exists");
         }
 
-        Optional<Token> getToken = tokenRepository.findByToken(token);
+        Optional<Token> getToken = tokenRepository.findByTokenValue(token);
         if(getToken.isEmpty()) {
             throw new TokenNotFoundException("token not found");
         }
@@ -321,7 +318,7 @@ public class UserServiceImpl implements UserService {
             throw new InvalidTokenException("either token is expired or deleted");
         }
 
-        Optional<Token> getToken = tokenRepository.findByToken(token);
+        Optional<Token> getToken = tokenRepository.findByTokenValue(token);
 
         if(getToken.isEmpty()) {
             throw new InvalidTokenException("token not found");
@@ -342,7 +339,7 @@ public class UserServiceImpl implements UserService {
         List<BookingDto> bookings = new ArrayList<>();
 
         for(Booking booking : user.get().getUserBookings()) {
-            bookings.add(booking.convertToBookingDto());
+
         }
         return bookings;
     }
