@@ -47,8 +47,7 @@ public class TrainServiceImpl implements TrainService{
 
         User user = optionalToken.get().getUserTokens();
 
-        boolean isAdmin = user.getUserRoles().stream()
-                .anyMatch(role -> role.getName().equalsIgnoreCase(UserRole.ADMIN.toString()));
+        boolean isAdmin = false;
 
         if (!isAdmin) {
             throw new UnauthorizedUserException("User is unauthorized");
@@ -134,12 +133,12 @@ public class TrainServiceImpl implements TrainService{
         }
 
         User existingUser = optionalToken.get().getUserTokens();
-        boolean isAdmin = existingUser.getUserRoles().stream()
-                .anyMatch(role -> role.getName().equalsIgnoreCase(UserRole.ADMIN.toString()));
-
-        if (!isAdmin) {
-            throw new UnauthorizedUserException("User is not authorized to update");
-        }
+//        boolean isAdmin = existingUser.getUserRoles().stream()
+//                .anyMatch(role -> role.getName().equalsIgnoreCase(UserRole.ADMIN.toString()));
+//
+//        if (!isAdmin) {
+//            throw new UnauthorizedUserException("User is not authorized to update");
+//        }
 
         Optional<Train> optionalTrain = trainRepository.findByTrainNumber(trainNumber);
 
@@ -173,12 +172,12 @@ public class TrainServiceImpl implements TrainService{
         }
 
         User existingUser = optionalToken.get().getUserTokens();
-        boolean isAdmin = existingUser.getUserRoles().stream()
-                .anyMatch(role -> role.getName().equalsIgnoreCase(UserRole.ADMIN.toString()));
-
-        if (!isAdmin) {
-            throw new UnauthorizedUserException("User is not authorized to delete trains");
-        }
+//        boolean isAdmin = existingUser.getUserRoles().stream()
+//                .anyMatch(role -> role.getName().equalsIgnoreCase(UserRole.ADMIN.toString()));
+//
+//        if (!isAdmin) {
+//            throw new UnauthorizedUserException("User is not authorized to delete trains");
+//        }
 
         Optional<Train> optionalTrain = trainRepository.findByTrainNumber(trainNumber);
         if(optionalTrain.isEmpty()) {

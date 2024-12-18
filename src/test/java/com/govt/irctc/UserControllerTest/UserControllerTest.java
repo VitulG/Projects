@@ -1,13 +1,13 @@
 package com.govt.irctc.UserControllerTest;
 
-import com.govt.irctc.advice.LoginAdvice.InvalidTokenException;
-import com.govt.irctc.advice.LoginAdvice.TokenNotFoundException;
-import com.govt.irctc.advice.UnauthorizedUserException;
-import com.govt.irctc.advice.UserNotFoundException;
 import com.govt.irctc.controller.UserController;
 import com.govt.irctc.dto.BookingDto;
 import com.govt.irctc.dto.UserDto;
-import com.govt.irctc.service.UserService;
+import com.govt.irctc.exceptions.SecurityExceptions.InvalidTokenException;
+import com.govt.irctc.exceptions.SecurityExceptions.TokenNotFoundException;
+import com.govt.irctc.exceptions.SecurityExceptions.UnauthorizedUserException;
+import com.govt.irctc.exceptions.UserExceptions.UserNotFoundException;
+import com.govt.irctc.service.userService.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

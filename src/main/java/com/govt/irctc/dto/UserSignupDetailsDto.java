@@ -8,13 +8,19 @@ import java.util.Date;
 @Getter
 @Setter
 public class UserSignupDetailsDto {
-    private String userName;
+    private String username;
     private String password;
     private String userEmail;
     private int userAge;
-    private char userGender;
+    private String userGender;
     private Long userPhoneNumber;
-    private String userAddress;
     private Date userDob;
     private String userRole;
+    private String profilePictureUrl;
+    private int houseNumber;
+    private String streetName;
+    private String city;
+    private String state;
+    private String pinCode;
+    private String country;
 }

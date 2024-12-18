@@ -2,6 +2,7 @@ package com.govt.irctc.model;
 
 import com.govt.irctc.dto.BookingDto;
 import com.govt.irctc.dto.UserDto;
+import com.govt.irctc.enums.UserRole;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -35,9 +36,9 @@ public class User extends BaseModel{
 
     private Date userDob;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.DETACH, CascadeType.MERGE,
-            CascadeType.PERSIST, CascadeType.REFRESH})
-    private List<Role> userRoles;
+    @Enumerated(EnumType.STRING)
+    @ElementCollection
+    private List<UserRole> userRoles;
 
     @OneToMany(mappedBy = "userTokens")
     private List<Token> userTokens;

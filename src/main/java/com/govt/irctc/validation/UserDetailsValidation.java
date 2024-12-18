@@ -44,8 +44,9 @@ public class UserDetailsValidation {
         return (number.length() == 10) && number.matches("\\d+");
     }
 
-    public boolean validateUserGender(char gender) {
-        return (gender == 'M' || gender == 'F' || gender == 'm' || gender == 'f');
+    public boolean validateUserGender(String gender) {
+        return (gender.equalsIgnoreCase("male")) || (gender.equalsIgnoreCase("female")) ||
+                (gender.equalsIgnoreCase("other"));
     }
 
     public boolean validateUserDateOfBirth(Date dateOfBirth) {

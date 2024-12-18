@@ -85,12 +85,12 @@ public class SeatServiceImpl implements SeatService{
 
         User existingUser = optionalToken.get().getUserTokens();
 
-        boolean isAdmin = existingUser.getUserRoles().stream()
-                .anyMatch(role -> role.getName().equalsIgnoreCase(UserRole.ADMIN.toString()));
-
-        if(!isAdmin) {
-            throw new UnauthorizedUserException("User is unauthorized to update the seats");
-        }
+//        boolean isAdmin = existingUser.getUserRoles().stream()
+//                .anyMatch(role -> role.getName().equalsIgnoreCase(UserRole.ADMIN.toString()));
+//
+//        if(!isAdmin) {
+//            throw new UnauthorizedUserException("User is unauthorized to update the seats");
+//        }
 
         Train train = optionalTrain.get();
 
@@ -112,12 +112,12 @@ public class SeatServiceImpl implements SeatService{
             throw new InvalidTokenException("either token is expired or deleted");
         }
 
-        boolean isAdmin = existingToken.getUserTokens().getUserRoles()
-                .stream().anyMatch(role -> role.getName().equalsIgnoreCase(UserRole.ADMIN.toString()));
-
-        if(!isAdmin) {
-            throw new UnauthorizedUserException("User is unauthorized to delete");
-        }
+//        boolean isAdmin = existingToken.getUserTokens().getUserRoles()
+//                .stream().anyMatch(role -> role.getName().equalsIgnoreCase(UserRole.ADMIN.toString()));
+//
+//        if(!isAdmin) {
+//            throw new UnauthorizedUserException("User is unauthorized to delete");
+//        }
 
         Optional<Train> optionalTrain = trainRepository.findByTrainNumber(trainNumber);
         if(optionalTrain.isEmpty()) {

@@ -32,7 +32,6 @@ public class UserController {
         } catch(UserCreationException | UserAlreadyExistsException userException) {
             return new ResponseEntity<>(userException.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception ex) {
-            // logger
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

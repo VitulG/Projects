@@ -7,6 +7,7 @@ import com.govt.irctc.exceptions.UserExceptions.UserAlreadyExistsException;
 import com.govt.irctc.exceptions.UserExceptions.UserCreationException;
 import com.govt.irctc.exceptions.UserExceptions.UserNotFoundException;
 import com.govt.irctc.model.*;
+import com.govt.irctc.repository.AddressRepository;
 import com.govt.irctc.repository.TokenRepository;
 import com.govt.irctc.repository.UserRepository;
 import com.govt.irctc.validation.TokenValidation;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -26,15 +26,18 @@ public class UserServiceImpl implements UserService {
     private final TokenRepository tokenRepository;
     private final UserDetailsValidation userDetailsValidation;
     private final TokenValidation tokenValidation;
+    private final AddressRepository addressRepository;
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder,
-                           TokenRepository tokenRepository, UserDetailsValidation userDetailsValidation, TokenValidation tokenValidation) {
+                           TokenRepository tokenRepository, UserDetailsValidation userDetailsValidation, TokenValidation
+                                       tokenValidation, AddressRepository addressRepository) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.tokenRepository = tokenRepository;
         this.userDetailsValidation = userDetailsValidation;
         this.tokenValidation = tokenValidation;
+        this.addressRepository = addressRepository;
     }
 
     @Override
@@ -45,7 +48,7 @@ public class UserServiceImpl implements UserService {
             throw new UserAlreadyExistsException("User already exists");
         }
 
-        if(!userDetailsValidation.validateUserName(userSignupDetailsDto.getUserName())) {
+        if(!userDetailsValidation.validateUserName(userSignupDetailsDto.getUsername())) {
             throw new UserCreationException("invalid username, username must starts with an alphabet");
         }
 
@@ -79,30 +82,40 @@ public class UserServiceImpl implements UserService {
         }
 
         User newUser = new User();
+        newUser.setUserAge(userSignupDetailsDto.getUserAge());
         newUser.setUserDob(userSignupDetailsDto.getUserDob());
-        newUser.setUserName(userSignupDetailsDto.getUserName());
         newUser.setUserEmail(userSignupDetailsDto.getUserEmail());
-//        newUser.setUserAddress(userSignupDetailsDto.getUserAddress());
-//        newUser.setUserAge(userSignupDetailsDto.getUserAge());
-//        newUser.setUserGender(userSignupDetailsDto.getUserGender());
-        newUser.setUserPhoneNumber(userSignupDetailsDto.getUserPhoneNumber());
-        newUser.setCreatedAt(LocalDateTime.now());
+        newUser.setUserName(userSignupDetailsDto.getUsername());
+        newUser.setUserGender(userSignupDetailsDto.getUserGender());
         newUser.setHashedPassword(bCryptPasswordEncoder.encode(userSignupDetailsDto.getPassword()));
+        newUser.setUserPhoneNumber(userSignupDetailsDto.getUserPhoneNumber());
+        newUser.setProfilePictureUrl(userSignupDetailsDto.getProfilePictureUrl());
+        newUser.setUserTokens(new ArrayList<>());
+        newUser.setUserAddresses(new ArrayList<>());
+        newUser.setUserRoles(new ArrayList<>());
+        newUser.setUserBookings(new ArrayList<>());
 
-        if(newUser.getUserRoles() == null) {
-            newUser.setUserRoles(new ArrayList<>());
+        String givenRole = userSignupDetailsDto.getUserRole();
+
+        if(!givenRole.equalsIgnoreCase("admin") && !givenRole.equalsIgnoreCase("user")) {
+            throw new UserCreationException("invalid given user role");
         }
 
-        if(userSignupDetailsDto.getUserRole().equalsIgnoreCase(UserRole.USER.toString())) {
-            Role role = new Role(UserRole.USER.toString());
-            newUser.getUserRoles().add(role);
-        }else if(userSignupDetailsDto.getUserRole().equalsIgnoreCase(UserRole.ADMIN.toString())){
-            Role role = new Role(UserRole.ADMIN.toString());
-            newUser.getUserRoles().add(role);
-        }
+        newUser.getUserRoles().add(UserRole.valueOf(givenRole.toUpperCase()));
+        User createdUser = userRepository.save(newUser);
 
-        userRepository.save(newUser);
-        return "User created successfully with id: "+newUser.getId();
+        Address userAddress = new Address();
+        userAddress.setHouseNumber(userSignupDetailsDto.getHouseNumber());
+        userAddress.setStreet(userSignupDetailsDto.getStreetName());
+        userAddress.setCity(userSignupDetailsDto.getCity());
+        userAddress.setState(userSignupDetailsDto.getState());
+        userAddress.setCountry(userSignupDetailsDto.getCountry());
+        userAddress.setPinCode(userSignupDetailsDto.getPinCode());
+        userAddress.setUser(newUser);
+        addressRepository.save(userAddress);
+
+        newUser.getUserAddresses().add(userAddress);
+        return "User created successfully with id: "+ createdUser.getId();
     }
 
     @Override
@@ -217,8 +230,7 @@ public class UserServiceImpl implements UserService {
 
         User user = getToken.get().getUserTokens();
 
-        boolean isAdmin = user.getUserRoles().stream()
-                .anyMatch(role -> role.getName().equalsIgnoreCase(UserRole.ADMIN.toString()));
+        boolean isAdmin = false;
 
         if(!isAdmin) {
             throw new UnauthorizedUserException("user is not authorized");
@@ -294,11 +306,11 @@ public class UserServiceImpl implements UserService {
 
         User existingUser = user.get();
 
-        if(!getToken.get().getUserTokens().getUserEmail().equals(existingUser.getUserEmail()) &&
-                getToken.get().getUserTokens().getUserRoles().stream()
-                        .noneMatch(role -> role.getName().equalsIgnoreCase(UserRole.ADMIN.toString()))) {
-            throw new UnauthorizedUserException("user is not authorized");
-        }
+//        if(!getToken.get().getUserTokens().getUserEmail().equals(existingUser.getUserEmail()) &&
+//                getToken.get().getUserTokens().getUserRoles().stream()
+//                        .noneMatch(role -> role.getName().equalsIgnoreCase(UserRole.ADMIN.toString()))) {
+//            throw new UnauthorizedUserException("user is not authorized");
+//        }
 
         // first set their token as deleted
         for(Token tokens : existingUser.getUserTokens()) {
@@ -329,12 +341,12 @@ public class UserServiceImpl implements UserService {
             throw new UserNotFoundException("User does not exists");
         }
 
-        if(!email.equals(user.get().getUserEmail()) &&
-                getToken.get().getUserTokens().getUserRoles()
-                        .stream().noneMatch(role -> role.getName().
-                                equalsIgnoreCase(UserRole.ADMIN.toString()))) {
-            throw new UnauthorizedUserException("User is not authorized");
-        }
+//        if(!email.equals(user.get().getUserEmail()) &&
+//                getToken.get().getUserTokens().getUserRoles()
+//                        .stream().noneMatch(role -> role.getName().
+//                                equalsIgnoreCase(UserRole.ADMIN.toString()))) {
+//            throw new UnauthorizedUserException("User is not authorized");
+//        }
 
         List<BookingDto> bookings = new ArrayList<>();
 
