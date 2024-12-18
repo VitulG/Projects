@@ -1,6 +1,5 @@
 package com.govt.irctc.dto;
 
-import com.govt.irctc.model.TrainType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

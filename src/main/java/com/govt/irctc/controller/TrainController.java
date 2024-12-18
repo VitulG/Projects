@@ -1,12 +1,12 @@
 package com.govt.irctc.controller;
 
-import com.govt.irctc.advice.LoginAdvice.InvalidTokenException;
-import com.govt.irctc.advice.TrainAdvice.TrainCreationException;
-import com.govt.irctc.advice.TrainAdvice.TrainDeletionException;
-import com.govt.irctc.advice.TrainAdvice.TrainNotFoundException;
-import com.govt.irctc.advice.TrainAdvice.TrainUpdationException;
-import com.govt.irctc.advice.UnauthorizedUserException;
 import com.govt.irctc.dto.TrainDto;
+import com.govt.irctc.exceptions.SecurityExceptions.InvalidTokenException;
+import com.govt.irctc.exceptions.SecurityExceptions.UnauthorizedUserException;
+import com.govt.irctc.exceptions.TrainExceptions.TrainCreationException;
+import com.govt.irctc.exceptions.TrainExceptions.TrainDeletionException;
+import com.govt.irctc.exceptions.TrainExceptions.TrainNotFoundException;
+import com.govt.irctc.exceptions.TrainExceptions.TrainUpdationException;
 import com.govt.irctc.service.trainservice.TrainService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

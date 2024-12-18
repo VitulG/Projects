@@ -1,11 +1,13 @@
 package com.govt.irctc.service.seatservice;
 
-import com.govt.irctc.advice.LoginAdvice.InvalidTokenException;
-import com.govt.irctc.advice.SeatAdvice.SeatsNotFoundException;
-import com.govt.irctc.advice.TrainAdvice.TrainNotFoundException;
-import com.govt.irctc.advice.UnauthorizedUserException;
+
 import com.govt.irctc.dto.SeatDto;
 import com.govt.irctc.dto.ShowSeatDto;
+import com.govt.irctc.enums.UserRole;
+import com.govt.irctc.exceptions.SeatExceptions.SeatsNotFoundException;
+import com.govt.irctc.exceptions.SecurityExceptions.InvalidTokenException;
+import com.govt.irctc.exceptions.SecurityExceptions.UnauthorizedUserException;
+import com.govt.irctc.exceptions.TrainExceptions.TrainNotFoundException;
 import com.govt.irctc.model.*;
 import com.govt.irctc.repository.SeatRepository;
 import com.govt.irctc.repository.TokenRepository;

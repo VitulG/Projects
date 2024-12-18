@@ -1,10 +1,11 @@
 package com.govt.irctc.service.trainservice;
 
-import com.govt.irctc.advice.LoginAdvice.InvalidTokenException;
-import com.govt.irctc.advice.TrainAdvice.TrainCreationException;
-import com.govt.irctc.advice.TrainAdvice.TrainNotFoundException;
-import com.govt.irctc.advice.UnauthorizedUserException;
+
 import com.govt.irctc.dto.TrainDto;
+import com.govt.irctc.exceptions.SecurityExceptions.InvalidTokenException;
+import com.govt.irctc.exceptions.SecurityExceptions.UnauthorizedUserException;
+import com.govt.irctc.exceptions.TrainExceptions.TrainCreationException;
+import com.govt.irctc.exceptions.TrainExceptions.TrainNotFoundException;
 
 import java.util.List;
 

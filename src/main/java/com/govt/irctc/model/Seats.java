@@ -1,6 +1,7 @@
 package com.govt.irctc.model;
 
 import com.govt.irctc.dto.SeatDto;
+import com.govt.irctc.enums.SeatType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

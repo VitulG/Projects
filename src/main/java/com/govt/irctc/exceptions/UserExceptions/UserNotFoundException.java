@@ -1,0 +1,6 @@
+package com.govt.irctc.exceptions.UserExceptions;
+public class UserNotFoundException extends Exception{
+    public UserNotFoundException(String message){
+        super(message);
+    }
+}

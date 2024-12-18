@@ -2,6 +2,7 @@ package com.govt.irctc.model;
 
 import com.govt.irctc.dto.SeatDto;
 import com.govt.irctc.dto.TrainDto;
+import com.govt.irctc.enums.TrainType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

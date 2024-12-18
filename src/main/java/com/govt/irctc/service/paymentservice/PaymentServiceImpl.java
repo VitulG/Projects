@@ -1,13 +1,13 @@
 package com.govt.irctc.service.paymentservice;
 
-import com.govt.irctc.advice.BookingAdvice.BookingNotFoundException;
-import com.govt.irctc.advice.LoginAdvice.InvalidTokenException;
-import com.govt.irctc.advice.PaymentAdvice.PaymentLinkGenerationException;
-import com.govt.irctc.advice.PaymentAdvice.PaymentNotFoundException;
+import com.govt.irctc.enums.PaymentStatus;
+import com.govt.irctc.enums.RefundStatus;
+import com.govt.irctc.exceptions.BookingExceptions.BookingNotFoundException;
+import com.govt.irctc.exceptions.PaymentExceptions.PaymentLinkGenerationException;
+import com.govt.irctc.exceptions.PaymentExceptions.PaymentNotFoundException;
+import com.govt.irctc.exceptions.SecurityExceptions.InvalidTokenException;
 import com.govt.irctc.model.Booking;
 import com.govt.irctc.model.Payment;
-import com.govt.irctc.model.PaymentStatus;
-import com.govt.irctc.model.RefundStatus;
 import com.govt.irctc.repository.BookingRepository;
 import com.govt.irctc.repository.PaymentRepository;
 import com.govt.irctc.service.paymentservice.paymentgateways.PaymentGateway;
@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class PaymentServiceImpl implements PaymentService{
@@ -23,7 +24,6 @@ public class PaymentServiceImpl implements PaymentService{
     private final PaymentGateway paymentGateway;
     private final PaymentRepository paymentRepository;
     private final TokenValidation tokenValidation;
-    private Long transactionId;
 
     public PaymentServiceImpl(BookingRepository bookingRepository,
                               PaymentGateway paymentGateway, PaymentRepository paymentRepository,
@@ -32,7 +32,6 @@ public class PaymentServiceImpl implements PaymentService{
         this.paymentGateway = paymentGateway;
         this.paymentRepository = paymentRepository;
         this.tokenValidation = tokenValidation;
-        this.transactionId = 1L;
     }
 
     @Override
@@ -62,7 +61,7 @@ public class PaymentServiceImpl implements PaymentService{
         }
 
         Payment payment = new Payment();
-        payment.setPaymentId(generateUniqueTransactionId());
+        payment.setTransactionId(generateUniqueTransactionId());
         payment.setBooking(existingBooking);
         payment.setStatus(PaymentStatus.INITIATED);
         payment.setCreatedAt(LocalDateTime.now());
@@ -72,8 +71,8 @@ public class PaymentServiceImpl implements PaymentService{
         return paymentLink;
     }
 
-    public synchronized Long generateUniqueTransactionId() {
-        return this.transactionId++;
+    public synchronized String generateUniqueTransactionId() {
+        return UUID.randomUUID().toString();
     }
 
     @Override

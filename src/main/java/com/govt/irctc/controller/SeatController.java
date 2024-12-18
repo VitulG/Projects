@@ -1,14 +1,11 @@
 package com.govt.irctc.controller;
 
-import com.govt.irctc.advice.LoginAdvice.InvalidTokenException;
-import com.govt.irctc.advice.SeatAdvice.SeatDeletionException;
-import com.govt.irctc.advice.SeatAdvice.SeatNotCreatedException;
-import com.govt.irctc.advice.SeatAdvice.SeatUpdationException;
-import com.govt.irctc.advice.SeatAdvice.SeatsNotFoundException;
-import com.govt.irctc.advice.TrainAdvice.TrainNotFoundException;
-import com.govt.irctc.advice.UnauthorizedUserException;
 import com.govt.irctc.dto.SeatDto;
 import com.govt.irctc.dto.ShowSeatDto;
+import com.govt.irctc.exceptions.SeatExceptions.SeatDeletionException;
+import com.govt.irctc.exceptions.SeatExceptions.SeatNotCreatedException;
+import com.govt.irctc.exceptions.SeatExceptions.SeatUpdationException;
+import com.govt.irctc.exceptions.SeatExceptions.SeatsNotFoundException;
 import com.govt.irctc.service.seatservice.SeatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,15 +33,9 @@ public class SeatController {
                 throw new SeatNotCreatedException("Seats was not created");
             }
             return new ResponseEntity<>(message, HttpStatus.CREATED);
-        }catch (TrainNotFoundException trainException) {
-            trainException.printStackTrace();
-            return new ResponseEntity<>(trainException.getMessage(), HttpStatus.NOT_FOUND);
         } catch(SeatNotCreatedException seatException) {
             seatException.printStackTrace();
             return new ResponseEntity<>(seatException.getMessage(), HttpStatus.BAD_REQUEST);
-        }catch(InvalidTokenException | UnauthorizedUserException securityException) {
-            securityException.printStackTrace();
-            return new ResponseEntity<>(securityException.getMessage(), HttpStatus.UNAUTHORIZED);
         } catch (Exception ex) {
             ex.printStackTrace();
             return new ResponseEntity<>("something went wrong", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -60,12 +51,9 @@ public class SeatController {
                 throw new SeatsNotFoundException("Seats are not available for this train");
             }
             return new ResponseEntity<>(seats, HttpStatus.OK);
-        } catch(SeatsNotFoundException | TrainNotFoundException seatsNotFoundException) {
+        } catch(SeatsNotFoundException seatsNotFoundException) {
             seatsNotFoundException.printStackTrace();
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        } catch(InvalidTokenException invalidTokenException) {
-            invalidTokenException.printStackTrace();
-            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         } catch (Exception ex) {
             ex.printStackTrace();
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -85,12 +73,6 @@ public class SeatController {
         }catch(SeatUpdationException seatUpdationException) {
             seatUpdationException.printStackTrace();
             return new ResponseEntity<>(seatUpdationException.getMessage(), HttpStatus.BAD_REQUEST);
-        } catch(TrainNotFoundException | SeatsNotFoundException notFoundException) {
-            notFoundException.printStackTrace();
-            return new ResponseEntity<>(notFoundException.getMessage(), HttpStatus.NOT_FOUND);
-        } catch(InvalidTokenException | UnauthorizedUserException securityException) {
-            securityException.printStackTrace();
-            return new ResponseEntity<>(securityException.getMessage(), HttpStatus.UNAUTHORIZED);
         } catch(Exception ex) {
             ex.printStackTrace();
             return new ResponseEntity<>("something went wrong", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -109,12 +91,6 @@ public class SeatController {
         }catch (SeatDeletionException exception) {
             exception.printStackTrace();
             return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
-        } catch(TrainNotFoundException | SeatsNotFoundException notFoundException) {
-            notFoundException.printStackTrace();
-            return new ResponseEntity<>(notFoundException.getMessage(), HttpStatus.NOT_FOUND);
-        } catch (InvalidTokenException | UnauthorizedUserException securityException) {
-            securityException.printStackTrace();
-            return new ResponseEntity<>(securityException.getMessage(), HttpStatus.UNAUTHORIZED);
         } catch (Exception ex) {
             ex.printStackTrace();
             return new ResponseEntity<>("something went wrong", HttpStatus.INTERNAL_SERVER_ERROR);

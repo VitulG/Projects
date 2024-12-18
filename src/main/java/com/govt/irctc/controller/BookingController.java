@@ -1,12 +1,9 @@
 package com.govt.irctc.controller;
 
-import com.govt.irctc.advice.BookingAdvice.BookingCreatingException;
-import com.govt.irctc.advice.BookingAdvice.BookingNotFoundException;
-import com.govt.irctc.advice.LoginAdvice.InvalidTokenException;
-import com.govt.irctc.advice.SeatAdvice.SeatTypeException;
-import com.govt.irctc.advice.UserNotFoundException;
 import com.govt.irctc.dto.BookingDetailsDto;
 import com.govt.irctc.dto.BookingDto;
+import com.govt.irctc.exceptions.BookingExceptions.BookingNotFoundException;
+import com.govt.irctc.exceptions.UserExceptions.UserNotFoundException;
 import com.govt.irctc.service.bookingservice.BookingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,7 +28,7 @@ public class BookingController {
         try {
             String message = bookingService.bookTickets(bookingDetailsDto);
             return new ResponseEntity<>(message, HttpStatus.CREATED);
-        } catch (BookingCreatingException | SeatTypeException | InvalidTokenException bookingCreatingException) {
+        } catch (Exception bookingCreatingException) {
             bookingCreatingException.printStackTrace();
         }
         return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -45,7 +42,7 @@ public class BookingController {
                 throw  new BookingNotFoundException("PNR is not exists");
             }
             return new ResponseEntity<>(booking, HttpStatus.OK);
-        }catch (BookingNotFoundException bookingNotFound) {
+        }catch (Exception bookingNotFound) {
             bookingNotFound.printStackTrace();
         }
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
@@ -59,7 +56,7 @@ public class BookingController {
                 throw new BookingNotFoundException("booking does not exists");
             }
             return  new ResponseEntity<>(bookings, HttpStatus.OK);
-        }catch (UserNotFoundException | BookingNotFoundException exception) {
+        }catch (BookingNotFoundException | UserNotFoundException exception) {
             exception.printStackTrace();
         }
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
@@ -70,8 +67,8 @@ public class BookingController {
         try {
             String message = bookingService.cancelTickets(pnr);
             return new ResponseEntity<>(message, HttpStatus.OK);
-        }catch (BookingNotFoundException bookingNotFound) {
-            bookingNotFound.printStackTrace();
+        }catch (Exception exception) {
+            exception.printStackTrace();
         }
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }

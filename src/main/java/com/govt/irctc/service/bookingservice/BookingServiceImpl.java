@@ -1,12 +1,14 @@
 package com.govt.irctc.service.bookingservice;
 
-import com.govt.irctc.advice.BookingAdvice.BookingCreatingException;
-import com.govt.irctc.advice.BookingAdvice.BookingNotFoundException;
-import com.govt.irctc.advice.LoginAdvice.InvalidTokenException;
-import com.govt.irctc.advice.SeatAdvice.SeatTypeException;
-import com.govt.irctc.advice.UserNotFoundException;
 import com.govt.irctc.dto.BookingDetailsDto;
 import com.govt.irctc.dto.BookingDto;
+import com.govt.irctc.enums.PaymentStatus;
+import com.govt.irctc.enums.TicketStatus;
+import com.govt.irctc.exceptions.BookingExceptions.BookingCreatingException;
+import com.govt.irctc.exceptions.BookingExceptions.BookingNotFoundException;
+import com.govt.irctc.exceptions.SeatExceptions.SeatTypeException;
+import com.govt.irctc.exceptions.SecurityExceptions.InvalidTokenException;
+import com.govt.irctc.exceptions.UserExceptions.UserNotFoundException;
 import com.govt.irctc.model.*;
 import com.govt.irctc.repository.BookingRepository;
 import com.govt.irctc.repository.SeatRepository;
@@ -27,7 +29,6 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final SeatRepository seatRepository;
     private final TokenValidation tokenValidation;
-    private Long pnr;
 
     @Autowired
     public BookingServiceImpl(UserRepository userRepository, TrainRepository trainRepository,
@@ -38,7 +39,6 @@ public class BookingServiceImpl implements BookingService {
         this.userRepository = userRepository;
         this.seatRepository = seatRepository;
         this.tokenValidation = tokenValidation;
-        this.pnr = 1L;
     }
 
     @Override

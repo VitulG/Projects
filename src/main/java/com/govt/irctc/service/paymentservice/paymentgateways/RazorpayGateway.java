@@ -1,8 +1,8 @@
 package com.govt.irctc.service.paymentservice.paymentgateways;
 
-import com.govt.irctc.advice.PaymentAdvice.PaymentLinkGenerationException;
+
+import com.govt.irctc.exceptions.PaymentExceptions.PaymentLinkGenerationException;
 import com.govt.irctc.model.Booking;
-import com.govt.irctc.model.User;
 import com.razorpay.PaymentLink;
 import com.razorpay.RazorpayClient;
 import org.json.JSONObject;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class RazorpayGateway implements PaymentGateway {
 
     @Override
-    public String generatePaymentLink(Booking booking) throws PaymentLinkGenerationException{
+    public String generatePaymentLink(Booking booking) throws PaymentLinkGenerationException {
         try {
             RazorpayClient razorpay = new RazorpayClient("rzp_test_MZEtxncR4Vkqcn", 
                     "UYNI98uIc9BIlHddTmzrCl9N");

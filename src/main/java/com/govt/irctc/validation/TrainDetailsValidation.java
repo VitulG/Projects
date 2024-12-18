@@ -1,6 +1,6 @@
 package com.govt.irctc.validation;
 
-import com.govt.irctc.model.TrainType;
+import com.govt.irctc.enums.TrainType;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -1,12 +1,9 @@
 package com.govt.irctc.controller;
 
-import com.govt.irctc.advice.*;
-import com.govt.irctc.advice.LoginAdvice.InvalidCredentialsException;
-import com.govt.irctc.advice.LoginAdvice.InvalidTokenException;
-import com.govt.irctc.advice.LoginAdvice.PasswordMismatchException;
-import com.govt.irctc.advice.LoginAdvice.TokenNotFoundException;
 import com.govt.irctc.dto.*;
-import com.govt.irctc.service.UserService;
+import com.govt.irctc.exceptions.SecurityExceptions.*;
+import com.govt.irctc.exceptions.UserExceptions.*;
+import com.govt.irctc.service.userService.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -85,7 +82,7 @@ public class UserController {
                 throw new InvalidTokenException("token is not valid");
             }
             return new ResponseEntity<>(user, HttpStatus.OK);
-        } catch (InvalidTokenException | NullPointerException | TokenNotFoundException exception) {
+        } catch (NullPointerException | TokenNotFoundException | InvalidTokenException exception) {
             exception.printStackTrace();
         }
         return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);

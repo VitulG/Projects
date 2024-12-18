@@ -1,6 +1,6 @@
 package com.govt.irctc.validation;
 
-import com.govt.irctc.model.UserRole;
+import com.govt.irctc.enums.UserRole;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;

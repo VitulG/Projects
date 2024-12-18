@@ -1,9 +1,9 @@
 package com.govt.irctc.controller;
 
-import com.govt.irctc.advice.BookingAdvice.BookingNotFoundException;
-import com.govt.irctc.advice.LoginAdvice.InvalidTokenException;
-import com.govt.irctc.advice.PaymentAdvice.PaymentLinkGenerationException;
-import com.govt.irctc.advice.PaymentAdvice.PaymentNotFoundException;
+import com.govt.irctc.exceptions.BookingExceptions.BookingNotFoundException;
+
+import com.govt.irctc.exceptions.PaymentExceptions.PaymentLinkGenerationException;
+import com.govt.irctc.exceptions.PaymentExceptions.PaymentNotFoundException;
 import com.govt.irctc.service.paymentservice.PaymentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +26,8 @@ public class PaymentController {
                 throw new BookingNotFoundException("booking PNR doesn't exists");
             }
             return new ResponseEntity<>(message, HttpStatus.CREATED);
-        }catch (BookingNotFoundException | PaymentLinkGenerationException | InvalidTokenException exception) {
+        }catch (BookingNotFoundException | PaymentLinkGenerationException |
+                com.govt.irctc.exceptions.SecurityExceptions.InvalidTokenException exception) {
             exception.printStackTrace();
         }
         return new ResponseEntity<>("booking PNR doesn't exists", HttpStatus.INTERNAL_SERVER_ERROR);

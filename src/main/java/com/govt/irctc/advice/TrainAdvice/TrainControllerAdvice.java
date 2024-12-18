@@ -1,5 +1,9 @@
 package com.govt.irctc.advice.TrainAdvice;
 
+import com.govt.irctc.exceptions.TrainExceptions.TrainCreationException;
+import com.govt.irctc.exceptions.TrainExceptions.TrainDeletionException;
+import com.govt.irctc.exceptions.TrainExceptions.TrainNotFoundException;
+import com.govt.irctc.exceptions.TrainExceptions.TrainUpdationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;

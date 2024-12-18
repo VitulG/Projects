@@ -1,11 +1,12 @@
 package com.govt.irctc.service.seatservice;
 
-import com.govt.irctc.advice.LoginAdvice.InvalidTokenException;
-import com.govt.irctc.advice.SeatAdvice.SeatsNotFoundException;
-import com.govt.irctc.advice.TrainAdvice.TrainNotFoundException;
-import com.govt.irctc.advice.UnauthorizedUserException;
+
 import com.govt.irctc.dto.SeatDto;
 import com.govt.irctc.dto.ShowSeatDto;
+import com.govt.irctc.exceptions.SeatExceptions.SeatsNotFoundException;
+import com.govt.irctc.exceptions.SecurityExceptions.InvalidTokenException;
+import com.govt.irctc.exceptions.SecurityExceptions.UnauthorizedUserException;
+import com.govt.irctc.exceptions.TrainExceptions.TrainNotFoundException;
 
 public interface SeatService {
     public String addSeats(SeatDto seatDto, String token)

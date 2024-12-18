@@ -1,12 +1,12 @@
 package com.govt.irctc.service.bookingservice;
 
-import com.govt.irctc.advice.BookingAdvice.BookingCreatingException;
-import com.govt.irctc.advice.BookingAdvice.BookingNotFoundException;
-import com.govt.irctc.advice.LoginAdvice.InvalidTokenException;
-import com.govt.irctc.advice.SeatAdvice.SeatTypeException;
-import com.govt.irctc.advice.UserNotFoundException;
 import com.govt.irctc.dto.BookingDetailsDto;
 import com.govt.irctc.dto.BookingDto;
+import com.govt.irctc.exceptions.BookingExceptions.BookingCreatingException;
+import com.govt.irctc.exceptions.BookingExceptions.BookingNotFoundException;
+import com.govt.irctc.exceptions.SeatExceptions.SeatTypeException;
+import com.govt.irctc.exceptions.SecurityExceptions.InvalidTokenException;
+import com.govt.irctc.exceptions.UserExceptions.UserNotFoundException;
 
 import java.util.List;
 

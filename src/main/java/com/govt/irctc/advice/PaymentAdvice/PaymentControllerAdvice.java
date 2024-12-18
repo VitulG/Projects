@@ -1,5 +1,7 @@
 package com.govt.irctc.advice.PaymentAdvice;
 
+import com.govt.irctc.exceptions.PaymentExceptions.PaymentLinkGenerationException;
+import com.govt.irctc.exceptions.PaymentExceptions.PaymentNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;

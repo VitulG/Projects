@@ -1,9 +1,10 @@
 package com.govt.irctc.service.paymentservice;
 
-import com.govt.irctc.advice.BookingAdvice.BookingNotFoundException;
-import com.govt.irctc.advice.LoginAdvice.InvalidTokenException;
-import com.govt.irctc.advice.PaymentAdvice.PaymentLinkGenerationException;
-import com.govt.irctc.advice.PaymentAdvice.PaymentNotFoundException;
+
+import com.govt.irctc.exceptions.BookingExceptions.BookingNotFoundException;
+import com.govt.irctc.exceptions.PaymentExceptions.PaymentLinkGenerationException;
+import com.govt.irctc.exceptions.PaymentExceptions.PaymentNotFoundException;
+import com.govt.irctc.exceptions.SecurityExceptions.InvalidTokenException;
 
 public interface PaymentService {
     String initiatePayment(Long pnr) throws BookingNotFoundException, PaymentLinkGenerationException, InvalidTokenException;
