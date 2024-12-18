@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 
 @Component
-public class UserDetailsValidation {
+public class UserDetailsValidator {
 
     public boolean validateUserName(String userName) {
         if(userName == null || userName.length() < 3 || userName.length() > 256) {

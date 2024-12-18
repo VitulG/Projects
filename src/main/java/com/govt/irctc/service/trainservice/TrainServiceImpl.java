@@ -3,7 +3,6 @@ package com.govt.irctc.service.trainservice;
 
 import com.govt.irctc.dto.TrainDto;
 import com.govt.irctc.enums.TrainType;
-import com.govt.irctc.enums.UserRole;
 import com.govt.irctc.exceptions.SecurityExceptions.InvalidTokenException;
 import com.govt.irctc.exceptions.SecurityExceptions.UnauthorizedUserException;
 import com.govt.irctc.exceptions.TrainExceptions.TrainCreationException;
@@ -11,8 +10,7 @@ import com.govt.irctc.exceptions.TrainExceptions.TrainNotFoundException;
 import com.govt.irctc.model.*;
 import com.govt.irctc.repository.TokenRepository;
 import com.govt.irctc.repository.TrainRepository;
-import com.govt.irctc.validation.TokenValidation;
-import com.govt.irctc.validation.TrainDetailsValidation;
+import com.govt.irctc.validation.TrainDetailsValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,17 +21,15 @@ import java.util.*;
 public class TrainServiceImpl implements TrainService{
 
     private final TrainRepository trainRepository;
-    private final TokenValidation tokenValidation;
     private final TokenRepository tokenRepository;
-    private final TrainDetailsValidation trainDetailsValidation;
+    private final TrainDetailsValidator trainDetailsValidator;
 
     @Autowired
     public TrainServiceImpl(TrainRepository trainRepository,
-                            TokenValidation tokenValidation, TokenRepository tokenRepository, TrainDetailsValidation trainDetailsValidation) {
+                            TokenRepository tokenRepository, TrainDetailsValidator trainDetailsValidator) {
         this.trainRepository = trainRepository;
-        this.tokenValidation = tokenValidation;
         this.tokenRepository = tokenRepository;
-        this.trainDetailsValidation = trainDetailsValidation;
+        this.trainDetailsValidator = trainDetailsValidator;
     }
 
     @Override
@@ -63,13 +59,13 @@ public class TrainServiceImpl implements TrainService{
 //        train.setTrainDestinationCity(trainDto.getTrainDestinationCity());
 //        train.setTrainArrivalCity(trainDto.getTrainArrivalCity());
 
-        if(!trainDetailsValidation.validateTrainNumber(trainDto.getTrainNumber())) {
-            throw new TrainCreationException("Invalid train number");
-        }
-
-        if(!trainDetailsValidation.validateTrainType(trainDto.getTrainType())) {
-            throw new TrainCreationException("Invalid train type");
-        }
+//        if(!trainDetailsValidation.validateTrainNumber(trainDto.getTrainNumber())) {
+//            throw new TrainCreationException("Invalid train number");
+//        }
+//
+//        if(!trainDetailsValidation.validateTrainType(trainDto.getTrainType())) {
+//            throw new TrainCreationException("Invalid train type");
+//        }
 
         train.setTrainNumber(trainDto.getTrainNumber());
         train.setTrainName(trainDto.getTrainName());
@@ -87,9 +83,9 @@ public class TrainServiceImpl implements TrainService{
     @Override
     public TrainDto getTrainById(Long trainNumber, String token) throws TrainNotFoundException, InvalidTokenException {
 
-        if(!tokenValidation.isTokenValid(token)) {
-            throw new InvalidTokenException("token is either expired or invalid");
-        }
+//        if(!tokenValidation.isTokenValid(token)) {
+//            throw new InvalidTokenException("token is either expired or invalid");
+//        }
 
         Optional<Train> optionalTrain = trainRepository.findByTrainNumber(trainNumber);
         if(optionalTrain.isEmpty()) {
@@ -103,9 +99,9 @@ public class TrainServiceImpl implements TrainService{
 
     @Override
     public List<TrainDto> getAllTrains(String token) throws InvalidTokenException, TrainNotFoundException {
-        if(!tokenValidation.isTokenValid(token)) {
-            throw new InvalidTokenException("Token is invalid");
-        }
+//        if(!tokenValidation.isTokenValid(token)) {
+//            throw new InvalidTokenException("Token is invalid");
+//        }
         List<Train> trains = trainRepository.findAll();
 
         if(trains.isEmpty()) {
@@ -167,9 +163,9 @@ public class TrainServiceImpl implements TrainService{
     public String deleteTrainByTrainNumber(Long trainNumber, String token) throws TrainNotFoundException, InvalidTokenException, UnauthorizedUserException {
         Optional<Token> optionalToken = tokenRepository.findByTokenValue(token);
 
-        if(optionalToken.isEmpty() || !tokenValidation.isTokenValid(token)) {
-            throw new InvalidTokenException("token is invalid");
-        }
+//        if(optionalToken.isEmpty() || !tokenValidation.isTokenValid(token)) {
+//            throw new InvalidTokenException("token is invalid");
+//        }
 
         User existingUser = optionalToken.get().getUserTokens();
 //        boolean isAdmin = existingUser.getUserRoles().stream()

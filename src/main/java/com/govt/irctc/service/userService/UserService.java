@@ -14,7 +14,7 @@ public interface UserService {
             throws UserCreationException, UserAlreadyExistsException;
     public String logoutUser(String token) throws TokenNotFoundException;
     public UserDto validateUserToken(String token) throws TokenNotFoundException, InvalidTokenException;
-    public LoginResponseDto getAndValidateUser(LoginDetailsDto loginDetailsDto) throws InvalidCredentialsException, PasswordMismatchException;
+    public LoginResponseDto getAndValidateUser(LoginDetailsDto loginDetailsDto) throws InvalidCredentialsException, PasswordMismatchException, LoginValidationException;
     public UserDto getUserByEmail(String email, String token) throws UserNotFoundException, InvalidTokenException, UnauthorizedUserException;
     public List<UserDto> getAllUsers(String token) throws InvalidTokenException, UnauthorizedUserException;
     public String updateUserById(String email, UserDto userDto, String token) throws UserNotFoundException, InvalidTokenException, UnauthorizedUserException;

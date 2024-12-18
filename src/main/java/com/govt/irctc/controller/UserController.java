@@ -38,18 +38,18 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginDetailsDto loginDetailsDto) {
+        LoginResponseDto response;
         try {
-            LoginResponseDto response = userService.getAndValidateUser(loginDetailsDto);
-
-            if(response == null) {
-                throw new InvalidCredentialsException("Invalid user name/password");
-            }
+            response = userService.getAndValidateUser(loginDetailsDto);
             return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (InvalidCredentialsException | PasswordMismatchException exception) {
-            exception.printStackTrace();
-            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        } catch (InvalidCredentialsException | PasswordMismatchException | LoginValidationException exception) {
+            response = new LoginResponseDto();
+            response.setErrorMessage(exception.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
         }catch (Exception ex) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            response = new LoginResponseDto();
+            response.setErrorMessage(ex.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

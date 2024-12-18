@@ -3,7 +3,6 @@ package com.govt.irctc.service.seatservice;
 
 import com.govt.irctc.dto.SeatDto;
 import com.govt.irctc.dto.ShowSeatDto;
-import com.govt.irctc.enums.UserRole;
 import com.govt.irctc.exceptions.SeatExceptions.SeatsNotFoundException;
 import com.govt.irctc.exceptions.SecurityExceptions.InvalidTokenException;
 import com.govt.irctc.exceptions.SecurityExceptions.UnauthorizedUserException;
@@ -12,15 +11,10 @@ import com.govt.irctc.model.*;
 import com.govt.irctc.repository.SeatRepository;
 import com.govt.irctc.repository.TokenRepository;
 import com.govt.irctc.repository.TrainRepository;
-import com.govt.irctc.validation.TokenValidation;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -28,15 +22,13 @@ public class SeatServiceImpl implements SeatService{
     private final TrainRepository trainRepository;
     private final SeatRepository seatRepository;
     private final TokenRepository tokenRepository;
-    private final TokenValidation tokenValidation;
 
     @Autowired
     public SeatServiceImpl(TrainRepository trainRepository, SeatRepository seatRepository,
-                           TokenRepository tokenRepository, TokenValidation tokenValidation) {
+                           TokenRepository tokenRepository) {
         this.trainRepository = trainRepository;
         this.seatRepository = seatRepository;
         this.tokenRepository = tokenRepository;
-        this.tokenValidation = tokenValidation;
     }
 
     @Override
@@ -108,9 +100,9 @@ public class SeatServiceImpl implements SeatService{
 
         Token existingToken = optionalToken.get();
 
-        if(!tokenValidation.isTokenValid(existingToken.getTokenValue())) {
-            throw new InvalidTokenException("either token is expired or deleted");
-        }
+//        if(!tokenValidation.isTokenValid(existingToken.getTokenValue())) {
+//            throw new InvalidTokenException("either token is expired or deleted");
+//        }
 
 //        boolean isAdmin = existingToken.getUserTokens().getUserRoles()
 //                .stream().anyMatch(role -> role.getName().equalsIgnoreCase(UserRole.ADMIN.toString()));

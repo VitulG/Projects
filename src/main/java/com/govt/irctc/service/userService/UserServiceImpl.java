@@ -10,8 +10,8 @@ import com.govt.irctc.model.*;
 import com.govt.irctc.repository.AddressRepository;
 import com.govt.irctc.repository.TokenRepository;
 import com.govt.irctc.repository.UserRepository;
-import com.govt.irctc.validation.TokenValidation;
-import com.govt.irctc.validation.UserDetailsValidation;
+import com.govt.irctc.validation.UserDetailsValidator;
+import com.govt.irctc.validation.UserSessionValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,20 +24,21 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final TokenRepository tokenRepository;
-    private final UserDetailsValidation userDetailsValidation;
-    private final TokenValidation tokenValidation;
+    private final UserDetailsValidator userDetailsValidator;
     private final AddressRepository addressRepository;
+    private final UserSessionValidator userSessionValidator;
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder,
-                           TokenRepository tokenRepository, UserDetailsValidation userDetailsValidation, TokenValidation
-                                       tokenValidation, AddressRepository addressRepository) {
+                           TokenRepository tokenRepository, UserDetailsValidator userDetailsValidator, AddressRepository addressRepository,
+                           UserSessionValidator userSessionValidator) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.tokenRepository = tokenRepository;
-        this.userDetailsValidation = userDetailsValidation;
-        this.tokenValidation = tokenValidation;
+        this.userDetailsValidator = userDetailsValidator;
         this.addressRepository = addressRepository;
+        this.userSessionValidator = userSessionValidator;
+
     }
 
     @Override
@@ -48,36 +49,36 @@ public class UserServiceImpl implements UserService {
             throw new UserAlreadyExistsException("User already exists");
         }
 
-        if(!userDetailsValidation.validateUserName(userSignupDetailsDto.getUsername())) {
+        if(!userDetailsValidator.validateUserName(userSignupDetailsDto.getUsername())) {
             throw new UserCreationException("invalid username, username must starts with an alphabet");
         }
 
-        if(!userDetailsValidation.validatePassword(userSignupDetailsDto.getPassword())) {
+        if(!userDetailsValidator.validatePassword(userSignupDetailsDto.getPassword())) {
             throw new UserCreationException("invalid password, password must contain one alphanumeric and special character" +
                     "must required");
         }
 
-        if(!userDetailsValidation.validateEmail(userSignupDetailsDto.getUserEmail())) {
+        if(!userDetailsValidator.validateEmail(userSignupDetailsDto.getUserEmail())) {
             throw new UserCreationException("invalid email address, for e.g. abc@abc.com");
         }
 
-        if(!userDetailsValidation.validateUserAge(userSignupDetailsDto.getUserAge())) {
+        if(!userDetailsValidator.validateUserAge(userSignupDetailsDto.getUserAge())) {
             throw new UserCreationException("invalid user age, age must be between 1 and 124");
         }
 
-        if(!userDetailsValidation.validatePhoneNumber(userSignupDetailsDto.getUserPhoneNumber())) {
+        if(!userDetailsValidator.validatePhoneNumber(userSignupDetailsDto.getUserPhoneNumber())) {
             throw new UserCreationException("Invalid phone number, phone number must contain only numbers");
         }
 
-        if(!userDetailsValidation.validateUserGender(userSignupDetailsDto.getUserGender())) {
+        if(!userDetailsValidator.validateUserGender(userSignupDetailsDto.getUserGender())) {
             throw new UserCreationException("Invalid user gender, gender must be one of 'm', 'f'");
         }
 
-        if(!userDetailsValidation.validateUserDateOfBirth(userSignupDetailsDto.getUserDob())) {
+        if(!userDetailsValidator.validateUserDateOfBirth(userSignupDetailsDto.getUserDob())) {
             throw new UserCreationException("Invalid date of birth, dob must be past date only");
         }
 
-        if(!userDetailsValidation.validateUserRole(userSignupDetailsDto.getUserRole())) {
+        if(!userDetailsValidator.validateUserRole(userSignupDetailsDto.getUserRole())) {
             throw new UserCreationException("Invalid User Role. role can either user or admin");
         }
 
@@ -126,9 +127,6 @@ public class UserServiceImpl implements UserService {
             throw new TokenNotFoundException("token not found");
         }
 
-        if(tokenValidation.isTokenValid(token)) {
-            throw new TokenNotFoundException("Invalid token");
-        }
 
         Token existingToken = getToken.get();
 
@@ -140,9 +138,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto validateUserToken(String token) throws TokenNotFoundException, InvalidTokenException {
-        if(!tokenValidation.isTokenValid(token)) {
-            throw new InvalidTokenException("Invalid token");
-        }
 
         Optional<Token> getToken = tokenRepository.findByTokenValue(token);
         if(getToken.isEmpty()) {
@@ -153,41 +148,46 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public LoginResponseDto getAndValidateUser(LoginDetailsDto loginDetailsDto) throws InvalidCredentialsException, PasswordMismatchException {
+    public LoginResponseDto getAndValidateUser(LoginDetailsDto loginDetailsDto) throws InvalidCredentialsException,
+            PasswordMismatchException, LoginValidationException {
         User user = userRepository.findByUserEmail(loginDetailsDto.getEmail())
                 .orElseThrow(() -> new InvalidCredentialsException("user not found"));
+
+        if(!user.getUserName().equals(loginDetailsDto.getUsername())) {
+            throw new LoginValidationException("Invalid username");
+        }
 
         if(!bCryptPasswordEncoder.matches(loginDetailsDto.getPassword(), user.getHashedPassword())) {
             throw new PasswordMismatchException("Password is not matching");
         }
 
+        userSessionValidator.validateUserSession(user);
+
         // Generate the token
         Token token = generateToken(user);
         tokenRepository.save(token);
-
-        if(user.getUserTokens() == null) {
-            user.setUserTokens(new ArrayList<>());
-        }
-
         user.getUserTokens().add(token);
 
+        return buildResponse(user);
+    }
+
+    private LoginResponseDto buildResponse(User user) {
         LoginResponseDto loginResponseDto = new LoginResponseDto();
         loginResponseDto.setName(user.getUserName());
         loginResponseDto.setEmail(user.getUserEmail());
+        loginResponseDto.setLoggedIn(true);
 
         return loginResponseDto;
     }
 
     private Token generateToken(User user) {
-        String token = UUID.randomUUID().toString();
         Token newToken = new Token();
-
-        newToken.setCreatedAt(LocalDateTime.now());
         newToken.setUserTokens(user);
+        newToken.setTokenValue(UUID.randomUUID().toString());
 
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.MONTH, 1);
-
+        newToken.setTokenValidity(calendar.getTime());
 
         return newToken;
     }
@@ -196,9 +196,6 @@ public class UserServiceImpl implements UserService {
     public UserDto getUserByEmail(String email, String token) throws
             UserNotFoundException, InvalidTokenException, UnauthorizedUserException {
 
-        if(!tokenValidation.isTokenValid(token)) {
-            throw new InvalidTokenException("either token is expired or deleted");
-        }
 
         Optional<User> user = userRepository.findByUserEmail(email);
         if(user.isEmpty()) {
@@ -224,9 +221,6 @@ public class UserServiceImpl implements UserService {
             throw new InvalidTokenException("token is invalid");
         }
 
-        if(!tokenValidation.isTokenValid(token)) {
-            throw new InvalidTokenException("either token is expired or deleted");
-        }
 
         User user = getToken.get().getUserTokens();
 
@@ -262,9 +256,6 @@ public class UserServiceImpl implements UserService {
             throw new InvalidTokenException("token doesn't exists");
         }
 
-        if(!tokenValidation.isTokenValid(token)) {
-            throw new InvalidTokenException("either token is expired or deleted");
-        }
 
         User existingUser = user.get();
 
@@ -300,9 +291,6 @@ public class UserServiceImpl implements UserService {
             throw new TokenNotFoundException("token not found");
         }
 
-        if(!tokenValidation.isTokenValid(token)) {
-            throw new InvalidTokenException("either token is expired or deleted");
-        }
 
         User existingUser = user.get();
 
@@ -326,9 +314,6 @@ public class UserServiceImpl implements UserService {
     public List<BookingDto> getUserBookings(String email, String token) throws UserNotFoundException,
             InvalidTokenException, UnauthorizedUserException {
 
-        if(!tokenValidation.isTokenValid(token)) {
-            throw new InvalidTokenException("either token is expired or deleted");
-        }
 
         Optional<Token> getToken = tokenRepository.findByTokenValue(token);
 

@@ -4,7 +4,7 @@ import com.govt.irctc.enums.TrainType;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TrainDetailsValidation {
+public class TrainDetailsValidator {
     public boolean validateTrainType(String type) {
         return type.equalsIgnoreCase(TrainType.EXPRESS.toString()) || type.equalsIgnoreCase(TrainType.LOCAL.toString())
                 || type.equalsIgnoreCase(TrainType.PASSENGER.toString()) || type.equalsIgnoreCase(TrainType.SUPER_FAST.toString());

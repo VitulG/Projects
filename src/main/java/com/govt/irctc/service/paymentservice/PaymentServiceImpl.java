@@ -10,7 +10,6 @@ import com.govt.irctc.model.Payment;
 import com.govt.irctc.repository.BookingRepository;
 import com.govt.irctc.repository.PaymentRepository;
 import com.govt.irctc.service.paymentservice.paymentgateways.PaymentGateway;
-import com.govt.irctc.validation.TokenValidation;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -21,15 +20,12 @@ public class PaymentServiceImpl implements PaymentService{
     private final BookingRepository bookingRepository;
     private final PaymentGateway paymentGateway;
     private final PaymentRepository paymentRepository;
-    private final TokenValidation tokenValidation;
 
     public PaymentServiceImpl(BookingRepository bookingRepository,
-                              PaymentGateway paymentGateway, PaymentRepository paymentRepository,
-                              TokenValidation tokenValidation) {
+                              PaymentGateway paymentGateway, PaymentRepository paymentRepository) {
         this.bookingRepository = bookingRepository;
         this.paymentGateway = paymentGateway;
         this.paymentRepository = paymentRepository;
-        this.tokenValidation = tokenValidation;
     }
 
     @Override
@@ -42,9 +38,9 @@ public class PaymentServiceImpl implements PaymentService{
 
         Booking existingBooking = booking.get();
 
-        if(tokenValidation.isTokenValid(existingBooking.getPnr())) {
-            throw new InvalidTokenException("Invalid token");
-        }
+//        if(tokenValidation.isTokenValid(existingBooking.getPnr())) {
+//            throw new InvalidTokenException("Invalid token");
+//        }
         Optional<Payment> paymentExists = paymentRepository.findByBookingId(existingBooking.getId());
 
         if(paymentExists.isPresent()) {

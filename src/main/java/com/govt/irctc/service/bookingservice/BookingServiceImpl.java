@@ -14,7 +14,6 @@ import com.govt.irctc.repository.BookingRepository;
 import com.govt.irctc.repository.SeatRepository;
 import com.govt.irctc.repository.TrainRepository;
 import com.govt.irctc.repository.UserRepository;
-import com.govt.irctc.validation.TokenValidation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,17 +27,14 @@ public class BookingServiceImpl implements BookingService {
     private final TrainRepository trainRepository;
     private final BookingRepository bookingRepository;
     private final SeatRepository seatRepository;
-    private final TokenValidation tokenValidation;
 
     @Autowired
     public BookingServiceImpl(UserRepository userRepository, TrainRepository trainRepository,
-                              BookingRepository bookingRepository, SeatRepository seatRepository,
-                              TokenValidation tokenValidation) {
+                              BookingRepository bookingRepository, SeatRepository seatRepository) {
         this.bookingRepository = bookingRepository;
         this.trainRepository = trainRepository;
         this.userRepository = userRepository;
         this.seatRepository = seatRepository;
-        this.tokenValidation = tokenValidation;
     }
 
     @Override
