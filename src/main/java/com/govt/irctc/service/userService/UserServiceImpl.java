@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -161,16 +162,14 @@ public class UserServiceImpl implements UserService {
         userDto.setUserGender(user.getUserGender());
         userDto.setUserPhoneNumber(user.getUserPhoneNumber());
         userDto.setProfilePictureUrl(user.getProfilePictureUrl());
-        List<BookingDto> bookingDtos = new ArrayList<BookingDto>();
-        for(Booking booking : user.getUserBookings()) {
-            bookingDtos.add(booking.convertToBookingDto());
-        }
-        userDto.setUserBookings(bookingDtos);
-        List<AddressDto> addressDtos = new ArrayList<AddressDto>();
-        for(Address address : user.getUserAddresses()) {
-            addressDtos.add(address.convertToAddressDto());
-        }
-        userDto.setUserAddresses(addressDtos);
+
+        userDto.setUserBookings(user.getUserBookings().stream()
+                .map(Booking::convertToBookingDto)
+                .collect(Collectors.toList()));
+
+        userDto.setUserAddresses(user.getUserAddresses().stream()
+                .map(Address::convertToAddressDto)
+                .collect(Collectors.toList()));
 
         return userDto;
     }
@@ -223,50 +222,45 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto getUserByEmail(String email, String token) throws
             UserNotFoundException, InvalidTokenException, UnauthorizedUserException {
+        Token existingToken = getToken(token);
 
+        User currentUser = existingToken.getUserTokens();
 
-        Optional<User> user = userRepository.findByUserEmail(email);
-        if(user.isEmpty()) {
-            throw new UserNotFoundException("user not found");
-        }
+        boolean isAdmin = currentUser.getUserRoles().stream()
+                .anyMatch(UserRole.ADMIN::equals);
 
-        if(!user.get().getUserRoles().toString().equalsIgnoreCase(UserRole.ADMIN.toString())
-                && !user.get().getUserEmail().equals(email)) {
+        if(!isAdmin) {
             throw new UnauthorizedUserException("user is not authorized");
         }
 
-        if(user.get().isDeleted()) {
-            throw new UserNotFoundException("user doesn't exists");
-        }
-        return null;
+        User user = userRepository.findByUserEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        return buildUserDto(user);
     }
 
     @Override
     public List<UserDto> getAllUsers(String token) throws InvalidTokenException, UnauthorizedUserException {
-        Optional<Token> getToken = tokenRepository.findByTokenValue(token);
+        Token existingToken = getToken(token);
 
-        if(getToken.isEmpty()) {
-            throw new InvalidTokenException("token is invalid");
-        }
+        User currentUser = existingToken.getUserTokens();
 
-
-        User user = getToken.get().getUserTokens();
-
-        boolean isAdmin = false;
+        boolean isAdmin = currentUser.getUserRoles().stream()
+                .anyMatch(UserRole.ADMIN::equals);
 
         if(!isAdmin) {
             throw new UnauthorizedUserException("user is not authorized");
         }
 
         List<User> users = userRepository.findAll();
-        List<UserDto> userDtos = new ArrayList<>();
+        return users.stream()
+                .map(this::buildUserDto)
+                .collect(Collectors.toList());
+    }
 
-        for(User u : users) {
-            if(!u.isDeleted()) {
-
-            }
-        }
-        return userDtos;
+    private Token getToken(String token) throws InvalidTokenException{
+        return tokenRepository.findByTokenValue(token)
+               .orElseThrow(() -> new InvalidTokenException("Token not found"));
     }
 
     @Override

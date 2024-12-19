@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -85,45 +86,37 @@ public class UserController {
     @RequestMapping(value = "/get-user/{email}", method = RequestMethod.GET)
     public ResponseEntity<UserDto> getUserByEmail(@PathVariable("email") String email,
                                                   @RequestHeader("Authorization") String token) {
+        UserDto userDto;
         try {
-            UserDto userDto = userService.getUserByEmail(email, token);
-            if(userDto == null) {
-                throw new UserNotFoundException("user not found");
-            }
+            userDto = userService.getUserByEmail(email, token);
             return new ResponseEntity<>(userDto, HttpStatus.OK);
         }catch (UserNotFoundException userNotFound) {
-            //add logger here
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        }catch(InvalidTokenException invalidTokenException) {
-            // logger
-            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
-        }catch(UnauthorizedUserException unauthorizedUserException) {
-            //logger
-            return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+            userDto = new UserDto();
+            userDto.setErrorMessage(userNotFound.getMessage());
+            return new ResponseEntity<>(userDto, HttpStatus.NOT_FOUND);
+        }catch(InvalidTokenException | UnauthorizedUserException securityException) {
+            userDto = new UserDto();
+            userDto.setErrorMessage(securityException.getMessage());
+            return new ResponseEntity<>(userDto, HttpStatus.UNAUTHORIZED);
         }catch(Exception ex) {
-            // logger
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            userDto = new UserDto();
+            userDto.setErrorMessage(ex.getMessage());
+            return new ResponseEntity<>(userDto, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("/get-all-users")
     public ResponseEntity<List<UserDto>> getAllUsers(@RequestHeader("Authorization") String token) {
+        List<UserDto> allUsers;
         try {
-            List<UserDto> allUsers = userService.getAllUsers(token);
-            if(allUsers.isEmpty()) {
-                throw new UserNotFoundException("users not found");
-            }
+            allUsers = userService.getAllUsers(token);
             return new ResponseEntity<>(allUsers, HttpStatus.OK);
         }catch (InvalidTokenException | UnauthorizedUserException userException) {
-            userException.printStackTrace();
-            return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
-        }catch (UserNotFoundException userNotFound) {
-            userNotFound.printStackTrace();
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        }
-        catch (Exception ex) {
-            ex.printStackTrace();
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            allUsers = new ArrayList<>();
+            return new ResponseEntity<>(allUsers, HttpStatus.FORBIDDEN);
+        } catch (Exception exception) {
+            allUsers = new ArrayList<>();
+            return new ResponseEntity<>(allUsers, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
