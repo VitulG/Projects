@@ -43,6 +43,9 @@ public class User extends BaseModel{
     @OneToMany(mappedBy = "userTokens")
     private List<Token> userTokens;
 
+    @OneToMany
+    private List<Seat> userSeats;
+
     @OneToMany(mappedBy = "userBookings", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
     private List<Booking> userBookings;
 

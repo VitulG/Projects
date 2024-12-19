@@ -121,16 +121,19 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String logoutUser(String token) throws TokenNotFoundException {
-        Optional<Token> getToken = tokenRepository.findByTokenValue(token);
+        Token existingToken = tokenRepository.findByTokenValue(token)
+                .orElseThrow(() -> new TokenNotFoundException("Token not found"));
 
-        if(getToken.isEmpty()) {
-            throw new TokenNotFoundException("token not found");
+        if(existingToken.isDeleted()) {
+            throw new TokenNotFoundException("Token is already deleted");
         }
 
-
-        Token existingToken = getToken.get();
-
         existingToken.setDeleted(true);
+
+        User user = existingToken.getUserTokens();
+        user.getUserTokens().remove(existingToken);
+        userRepository.save(user);
+
         tokenRepository.save(existingToken);
 
         return "logged out successfully";
@@ -138,13 +141,38 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto validateUserToken(String token) throws TokenNotFoundException, InvalidTokenException {
+        Token existingToken = tokenRepository.findByTokenValue(token)
+                .orElseThrow(() -> new TokenNotFoundException("Token not found"));
 
-        Optional<Token> getToken = tokenRepository.findByTokenValue(token);
-        if(getToken.isEmpty()) {
-            throw new TokenNotFoundException("token not found");
+        if(existingToken.isDeleted() || existingToken.getTokenValidity().before(new Date())) {
+            throw new InvalidTokenException("Token is either invalid or expired");
         }
-        Token existingToken = getToken.get();
-        return null;
+        User user = existingToken.getUserTokens();
+
+        return buildUserDto(user);
+    }
+
+    private UserDto buildUserDto(User user) {
+        UserDto userDto = new UserDto();
+        userDto.setUserName(user.getUserName());
+        userDto.setUserEmail(user.getUserEmail());
+        userDto.setUserDob(user.getUserDob());
+        userDto.setUserAge(user.getUserAge());
+        userDto.setUserGender(user.getUserGender());
+        userDto.setUserPhoneNumber(user.getUserPhoneNumber());
+        userDto.setProfilePictureUrl(user.getProfilePictureUrl());
+        List<BookingDto> bookingDtos = new ArrayList<BookingDto>();
+        for(Booking booking : user.getUserBookings()) {
+            bookingDtos.add(booking.convertToBookingDto());
+        }
+        userDto.setUserBookings(bookingDtos);
+        List<AddressDto> addressDtos = new ArrayList<AddressDto>();
+        for(Address address : user.getUserAddresses()) {
+            addressDtos.add(address.convertToAddressDto());
+        }
+        userDto.setUserAddresses(addressDtos);
+
+        return userDto;
     }
 
     @Override

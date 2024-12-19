@@ -5,13 +5,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SeatDto {
-    private String seatType;
-    private List<String> seatNumber;
+public class AddressDto {
+    private int houseNumber;
+    private String street;
+    private String city;
+    private String state;
+    private String country;
+    private String pinCode;
 }

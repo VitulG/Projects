@@ -7,18 +7,18 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class BookingDto {
-    private String name;
-    private String email;
-    private Long pnr;
-    private LocalDateTime bookingDate;
-    private String seatType;
     private Long trainNumber;
+    private String pnr;
+    private LocalDateTime bookingDate;
+    private List<SeatDto> seats;
+    private String compartmentType;
     private int numberOfPassengers;
     private String ticketStatus;
     private double totalPrice;

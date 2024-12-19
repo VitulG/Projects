@@ -16,9 +16,11 @@ public class UserDto {
     private String userName;
     private String userEmail;
     private int userAge;
-    private char userGender;
+    private String userGender;
     private Long userPhoneNumber;
-    private String userAddress;
     private Date userDob;
+    private String profilePictureUrl;
     private List<BookingDto> userBookings;
+    private List<AddressDto> userAddresses;
+    private String errorMessage;
 }

@@ -1,5 +1,7 @@
 package com.govt.irctc.model;
 
+import com.govt.irctc.dto.BookingDto;
+import com.govt.irctc.dto.SeatDto;
 import com.govt.irctc.enums.CompartmentType;
 import com.govt.irctc.enums.PaymentStatus;
 import com.govt.irctc.enums.TicketStatus;
@@ -10,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -42,4 +45,24 @@ public class Booking extends BaseModel{
 
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
+
+    public BookingDto convertToBookingDto() {
+        BookingDto bookingDto = new BookingDto();
+        bookingDto.setBookingDate(getBookingDate());
+        bookingDto.setPnr(getPnr());
+        bookingDto.setPaymentStatus(getPaymentStatus().toString());
+        List<SeatDto> userOneBookingSeats = new ArrayList<>();
+
+        for(Seat seat : userBookings.getUserSeats()) {
+            userOneBookingSeats.add(seat.convertToSeatDto());
+        }
+        bookingDto.setSeats(userOneBookingSeats);
+        bookingDto.setTotalPrice(getTotalPrice());
+        bookingDto.setCompartmentType(getCompartmentType().toString());
+        bookingDto.setTicketStatus(getTicketStatus().toString());
+        bookingDto.setTrainNumber(trains.getTrainNumber());
+        bookingDto.setPaymentStatus(getPaymentStatus().toString());
+
+        return bookingDto;
+    }
 }

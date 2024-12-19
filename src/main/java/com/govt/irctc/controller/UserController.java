@@ -57,30 +57,29 @@ public class UserController {
     public ResponseEntity<String> logout(@PathVariable("token") String token) {
         try {
             String message = userService.logoutUser(token);
-            if(message == null || message.isEmpty()){
-                throw new TokenNotFoundException("token not found");
-            }
             return new ResponseEntity<>(message, HttpStatus.OK);
         } catch (TokenNotFoundException exception) {
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>("Token not found", HttpStatus.NOT_FOUND);
         }catch (Exception ex) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Something went wrong", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @PostMapping("/validateToken")
-    public ResponseEntity<UserDto> validateToken(@RequestHeader("Authorization")
-                                                     String token) {
+    @PostMapping("/validate-user-token")
+    public ResponseEntity<UserDto> validateToken(@RequestHeader("Authorization") String token) {
+        UserDto user;
         try {
-            UserDto user = userService.validateUserToken(token);
-            if(user == null) {
-                throw new InvalidTokenException("token is not valid");
-            }
+            user = userService.validateUserToken(token);
             return new ResponseEntity<>(user, HttpStatus.OK);
-        } catch (NullPointerException | TokenNotFoundException | InvalidTokenException exception) {
-            exception.printStackTrace();
+        } catch (TokenNotFoundException | InvalidTokenException exception) {
+            user = new UserDto();
+            user.setErrorMessage(exception.getMessage());
+            return new ResponseEntity<>(user, HttpStatus.BAD_REQUEST);
+        } catch (Exception ex) {
+            user = new UserDto();
+            user.setErrorMessage(ex.getMessage());
+            return new ResponseEntity<>(user, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
     }
 
     @RequestMapping(value = "/get-user/{email}", method = RequestMethod.GET)
