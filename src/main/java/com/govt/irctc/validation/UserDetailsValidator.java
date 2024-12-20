@@ -8,7 +8,7 @@ import java.util.Date;
 @Component
 public class UserDetailsValidator {
 
-    public boolean validateUserName(String userName) {
+    public boolean isValidUserName(String userName) {
         if(userName == null || userName.length() < 3 || userName.length() > 256) {
             return false;
         }
@@ -16,7 +16,7 @@ public class UserDetailsValidator {
         return userName.matches(regex);
     }
 
-    public boolean validatePassword(String password) {
+    public boolean isValidPassword(String password) {
         if(password == null || password.length() < 5 || password.length() > 32) {
             return false;
         }
@@ -24,7 +24,7 @@ public class UserDetailsValidator {
         return password.matches(regex);
     }
 
-    public boolean validateEmail(String email) {
+    public boolean isValidEmail(String email) {
         if(email == null || email.length() < 5 || email.length() > 32) {
             return false;
         }
@@ -32,11 +32,11 @@ public class UserDetailsValidator {
         return email.matches(regex);
     }
 
-    public boolean validateUserAge(int age) {
+    public boolean isValidUserAge(int age) {
         return age > 0 && age < 125;
     }
 
-    public boolean validatePhoneNumber(Long phoneNumber) {
+    public boolean isValidPhoneNumber(Long phoneNumber) {
         if(phoneNumber == null) {
             return false;
         }
@@ -44,19 +44,19 @@ public class UserDetailsValidator {
         return (number.length() == 10) && number.matches("\\d+");
     }
 
-    public boolean validateUserGender(String gender) {
+    public boolean isValidUserGender(String gender) {
         return (gender.equalsIgnoreCase("male")) || (gender.equalsIgnoreCase("female")) ||
                 (gender.equalsIgnoreCase("other"));
     }
 
-    public boolean validateUserDateOfBirth(Date dateOfBirth) {
+    public boolean isValidUserDateOfBirth(Date dateOfBirth) {
         if(dateOfBirth == null) {
             return false;
         }
         return dateOfBirth.before(new Date());
     }
 
-    public boolean validateUserRole(String role) {
+    public boolean isValidUserRole(String role) {
         if(role == null || role.isEmpty()) {
             return false;
         }

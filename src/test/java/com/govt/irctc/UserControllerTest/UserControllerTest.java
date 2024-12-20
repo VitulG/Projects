@@ -3,10 +3,12 @@ package com.govt.irctc.UserControllerTest;
 import com.govt.irctc.controller.UserController;
 import com.govt.irctc.dto.BookingDto;
 import com.govt.irctc.dto.UserDto;
+import com.govt.irctc.dto.UserUpdateDetailsDto;
 import com.govt.irctc.exceptions.SecurityExceptions.InvalidTokenException;
 import com.govt.irctc.exceptions.SecurityExceptions.TokenNotFoundException;
 import com.govt.irctc.exceptions.SecurityExceptions.UnauthorizedUserException;
 import com.govt.irctc.exceptions.UserExceptions.UserNotFoundException;
+import com.govt.irctc.exceptions.UserExceptions.UserUpdationException;
 import com.govt.irctc.service.userService.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +72,8 @@ public class UserControllerTest {
     }
 
     @Test
-    public void testUpdateUserByEmailId() throws UserNotFoundException, InvalidTokenException, UnauthorizedUserException {
+    public void testUpdateUserByEmailId() throws UserNotFoundException, InvalidTokenException, UnauthorizedUserException,
+            UserUpdationException {
         UserDto existingUser = new UserDto();
         existingUser.setUserEmail("guptavitul@gmail.com");
         String email = "guptavitul@gmail.com";
@@ -78,12 +81,12 @@ public class UserControllerTest {
 
         when(userService.getUserByEmail(email, token)).thenReturn(existingUser);
 
-        UserDto updatedUser = new UserDto();
-        updatedUser.setUserEmail("rahul@gmail.com");
+        UserUpdateDetailsDto updateDetailsDto = new UserUpdateDetailsDto();
+        updateDetailsDto.setUpdatedEmail("rahul@gmail.com");
 
-        when(userService.updateUserById(email, updatedUser, "")).thenReturn("updated");
+        when(userService.updateUserById(token, updateDetailsDto)).thenReturn("updated");
 
-        ResponseEntity<String> response = userController.updateUserById(email, updatedUser, "");
+        ResponseEntity<String> response = userController.updateUserById(updateDetailsDto, token);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("updated", response.getBody());

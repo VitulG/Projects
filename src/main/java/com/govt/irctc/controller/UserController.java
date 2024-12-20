@@ -120,27 +120,17 @@ public class UserController {
         }
     }
 
-    @RequestMapping(value = "/update-user/{email}", method = RequestMethod.PUT)
-    public ResponseEntity<String> updateUserById(@PathVariable("email") String email,
-                                                 @RequestBody UserDto userDto,
+    @RequestMapping(value = "/update-user", method = RequestMethod.PUT)
+    public ResponseEntity<String> updateUserById(@RequestBody UserUpdateDetailsDto updateDetailsDto,
                                                  @RequestHeader("Authorization") String token) {
         try {
-            String message = userService.updateUserById(email, userDto, token);
-            if(message == null || message.isEmpty()) {
-                throw new UserUpdationException("unable to update the user");
-            }
+            String message = userService.updateUserById(token, updateDetailsDto);
             return new ResponseEntity<>(message, HttpStatus.OK);
-        }catch ( UnauthorizedUserException | InvalidTokenException userOperation) {
-            userOperation.printStackTrace();
-            return new ResponseEntity<>("user is unauthorized to update", HttpStatus.UNAUTHORIZED);
-        } catch (UserNotFoundException userException) {
-            userException.printStackTrace();
-            return new ResponseEntity<>(userException.getMessage(), HttpStatus.NOT_FOUND);
+        }catch ( UnauthorizedUserException | InvalidTokenException securityException) {
+            return new ResponseEntity<>(securityException.getMessage(), HttpStatus.UNAUTHORIZED);
         } catch (UserUpdationException userUpdationException) {
-            userUpdationException.printStackTrace();
             return new ResponseEntity<>(userUpdationException.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception ex) {
-            ex.printStackTrace();
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

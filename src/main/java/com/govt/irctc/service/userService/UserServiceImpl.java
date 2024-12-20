@@ -6,6 +6,7 @@ import com.govt.irctc.exceptions.SecurityExceptions.*;
 import com.govt.irctc.exceptions.UserExceptions.UserAlreadyExistsException;
 import com.govt.irctc.exceptions.UserExceptions.UserCreationException;
 import com.govt.irctc.exceptions.UserExceptions.UserNotFoundException;
+import com.govt.irctc.exceptions.UserExceptions.UserUpdationException;
 import com.govt.irctc.model.*;
 import com.govt.irctc.repository.AddressRepository;
 import com.govt.irctc.repository.TokenRepository;
@@ -50,36 +51,36 @@ public class UserServiceImpl implements UserService {
             throw new UserAlreadyExistsException("User already exists");
         }
 
-        if(!userDetailsValidator.validateUserName(userSignupDetailsDto.getUsername())) {
+        if(!userDetailsValidator.isValidUserName(userSignupDetailsDto.getUsername())) {
             throw new UserCreationException("invalid username, username must starts with an alphabet");
         }
 
-        if(!userDetailsValidator.validatePassword(userSignupDetailsDto.getPassword())) {
+        if(!userDetailsValidator.isValidPassword(userSignupDetailsDto.getPassword())) {
             throw new UserCreationException("invalid password, password must contain one alphanumeric and special character" +
                     "must required");
         }
 
-        if(!userDetailsValidator.validateEmail(userSignupDetailsDto.getUserEmail())) {
+        if(!userDetailsValidator.isValidEmail(userSignupDetailsDto.getUserEmail())) {
             throw new UserCreationException("invalid email address, for e.g. abc@abc.com");
         }
 
-        if(!userDetailsValidator.validateUserAge(userSignupDetailsDto.getUserAge())) {
+        if(!userDetailsValidator.isValidUserAge(userSignupDetailsDto.getUserAge())) {
             throw new UserCreationException("invalid user age, age must be between 1 and 124");
         }
 
-        if(!userDetailsValidator.validatePhoneNumber(userSignupDetailsDto.getUserPhoneNumber())) {
+        if(!userDetailsValidator.isValidPhoneNumber(userSignupDetailsDto.getUserPhoneNumber())) {
             throw new UserCreationException("Invalid phone number, phone number must contain only numbers");
         }
 
-        if(!userDetailsValidator.validateUserGender(userSignupDetailsDto.getUserGender())) {
+        if(!userDetailsValidator.isValidUserGender(userSignupDetailsDto.getUserGender())) {
             throw new UserCreationException("Invalid user gender, gender must be one of 'm', 'f'");
         }
 
-        if(!userDetailsValidator.validateUserDateOfBirth(userSignupDetailsDto.getUserDob())) {
+        if(!userDetailsValidator.isValidUserDateOfBirth(userSignupDetailsDto.getUserDob())) {
             throw new UserCreationException("Invalid date of birth, dob must be past date only");
         }
 
-        if(!userDetailsValidator.validateUserRole(userSignupDetailsDto.getUserRole())) {
+        if(!userDetailsValidator.isValidUserRole(userSignupDetailsDto.getUserRole())) {
             throw new UserCreationException("Invalid User Role. role can either user or admin");
         }
 
@@ -264,39 +265,59 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String updateUserById(String email, UserDto updatedUser, String token) throws UserNotFoundException,
-            InvalidTokenException, UnauthorizedUserException {
-        Optional<User> user = userRepository.findByUserEmail(email);
+    public String updateUserById(String token, UserUpdateDetailsDto updateDetailsDto) throws
+            InvalidTokenException, UnauthorizedUserException, UserUpdationException {
+        Token existingToken = getToken(token);
 
-        if(user.isEmpty()) {
-            throw new UserNotFoundException("user not exists");
+        User currentUser = existingToken.getUserTokens();
+
+        if(existingToken.isDeleted() || existingToken.getTokenValidity().before(new Date())) {
+            throw new UnauthorizedUserException("Either token is deleted or expired. please login again to update");
         }
 
-        Optional<Token> getToken = tokenRepository.findByTokenValue(token);
+        updateUserDetails(currentUser, updateDetailsDto);
+        userRepository.save(currentUser);
 
-        if(getToken.isEmpty()) {
-            throw new InvalidTokenException("token doesn't exists");
+        return "user details updated successfully";
+    }
+
+    private void updateUserDetails(User user, UserUpdateDetailsDto updateDetailsDto) throws UserUpdationException {
+        if (updateDetailsDto.getUpdatedUserName() != null &&
+                !userDetailsValidator.isValidUserName(updateDetailsDto.getUpdatedUserName())) {
+            throw new UserUpdationException("Incorrect user name");
         }
+        user.setUserName(updateDetailsDto.getUpdatedUserName());
 
-
-        User existingUser = user.get();
-
-        if(!getToken.get().getUserTokens().getUserEmail().equals(existingUser.getUserEmail())) {
-            throw new UnauthorizedUserException("user is unauthorized");
+        if (updateDetailsDto.getUpdatedAge() > 0 &&
+                !userDetailsValidator.isValidUserAge(updateDetailsDto.getUpdatedAge())) {
+            throw new UserUpdationException("Invalid user age");
         }
+        user.setUserAge(updateDetailsDto.getUpdatedAge());
 
-        existingUser.setUserDob(updatedUser.getUserDob());
-        existingUser.setUserName(updatedUser.getUserName());
-        existingUser.setUserEmail(updatedUser.getUserEmail());
-        existingUser.setUserAge(updatedUser.getUserAge());
-//        existingUser.setUserAddress(updatedUser.getUserAddress());
-//        existingUser.setUserGender(updatedUser.getUserGender());
-        existingUser.setUserPhoneNumber(updatedUser.getUserPhoneNumber());
-        existingUser.setUpdatedAt(LocalDateTime.now());
+        if (updateDetailsDto.getUpdatedEmail() != null &&
+                !userDetailsValidator.isValidEmail(updateDetailsDto.getUpdatedEmail())) {
+            throw new UserUpdationException("Invalid user email");
+        }
+        user.setUserEmail(updateDetailsDto.getUpdatedEmail());
 
-        userRepository.save(existingUser);
+        if (updateDetailsDto.getUpdatedGender() != null &&
+                !userDetailsValidator.isValidUserGender(updateDetailsDto.getUpdatedGender())) {
+            throw new UserUpdationException("Invalid user gender");
+        }
+        user.setUserGender(updateDetailsDto.getUpdatedGender());
 
-        return "user updated successfully";
+        if (updateDetailsDto.getUserDob() != null &&
+                !userDetailsValidator.isValidUserDateOfBirth(updateDetailsDto.getUserDob())) {
+            throw new UserUpdationException("Invalid user date of birth");
+        }
+        user.setUserDob(updateDetailsDto.getUserDob());
+
+        if (updateDetailsDto.getUpdatedPhoneNumber() != null &&
+                !userDetailsValidator.isValidPhoneNumber(updateDetailsDto.getUpdatedPhoneNumber())) {
+            throw new UserUpdationException("Invalid user phone number");
+        }
+        user.setUserPhoneNumber(updateDetailsDto.getUpdatedPhoneNumber());
+        user.setProfilePictureUrl(updateDetailsDto.getProfilePictureUrl());
     }
 
     @Override
