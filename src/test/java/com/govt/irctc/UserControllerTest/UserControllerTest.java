@@ -112,7 +112,7 @@ public class UserControllerTest {
 
     @Test
     public void testUserBookings() throws UserNotFoundException, InvalidTokenException,
-            UnauthorizedUserException {
+            UnauthorizedUserException, TokenNotFoundException {
         UserDto user = new UserDto();
         user.setUserEmail("guptavitul@gmail.com");
 

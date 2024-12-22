@@ -3,6 +3,7 @@ package com.govt.irctc.controller;
 import com.govt.irctc.dto.*;
 import com.govt.irctc.exceptions.SecurityExceptions.*;
 import com.govt.irctc.exceptions.UserExceptions.*;
+import com.govt.irctc.model.Booking;
 import com.govt.irctc.service.userService.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -139,22 +140,13 @@ public class UserController {
     public ResponseEntity<String> deleteUserById(@PathVariable("email") String email,
                                                  @RequestHeader("Authorization") String token) {
         try {
-            String message = userService.deleteUserById(email, token);
-            if(message == null || message.isEmpty()) {
-                throw new UserDeletionException("unable to delete the user");
-            }
-            return new ResponseEntity<>(message, HttpStatus.OK);
-        }catch (UserNotFoundException userNotFoundException) {
-            userNotFoundException.printStackTrace();
-            return new ResponseEntity<>(userNotFoundException.getMessage(), HttpStatus.NOT_FOUND);
-        }catch (UnauthorizedUserException | TokenNotFoundException | InvalidTokenException userException) {
-            userException.printStackTrace();
-            return new ResponseEntity<>(userException.getMessage(), HttpStatus.UNAUTHORIZED);
-        } catch (UserDeletionException userDeletionException) {
-            userDeletionException.printStackTrace();
-            return new ResponseEntity<>(userDeletionException.getMessage(), HttpStatus.BAD_REQUEST);
-        } catch (Exception ex) {
-            ex.printStackTrace();
+            String response = userService.deleteUserById(email, token);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (InvalidTokenException | UnauthorizedUserException securityException) {
+            return new ResponseEntity<>(securityException.getMessage(), HttpStatus.UNAUTHORIZED);
+        } catch (TokenNotFoundException notFoundException) {
+            return new ResponseEntity<>(notFoundException.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception exception) {
             return new ResponseEntity<>("something went wrong", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -162,22 +154,18 @@ public class UserController {
     @GetMapping("/get-user-bookings/{email}")
     public ResponseEntity<List<BookingDto>> getUserBookings(@PathVariable("email") String email,
                                                             @RequestHeader("Authorization") String token) {
+        List<BookingDto> userBookings;
         try {
-            List<BookingDto> userBookings = userService.getUserBookings(email, token);
-            if(userBookings == null) {
-                throw new UserBookingsNotFoundException("user not found");
-            }
-            return new ResponseEntity<>(userBookings, HttpStatus.OK);
-        }catch (UserNotFoundException | UserBookingsNotFoundException notFoundException) {
-            notFoundException.printStackTrace();
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        } catch (UnauthorizedUserException | InvalidTokenException exception) {
-            exception.printStackTrace();
-            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            userBookings = userService.getUserBookings(email, token);
+            return ResponseEntity.status(HttpStatus.OK).body(userBookings);
+        } catch (InvalidTokenException | UnauthorizedUserException securityException) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ArrayList<>());
+        } catch (TokenNotFoundException notFoundException) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ArrayList<>());
+        } catch (Exception exception) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<>());
         }
+
     }
 
 }

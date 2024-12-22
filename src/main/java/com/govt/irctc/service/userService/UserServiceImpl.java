@@ -9,6 +9,7 @@ import com.govt.irctc.exceptions.UserExceptions.UserNotFoundException;
 import com.govt.irctc.exceptions.UserExceptions.UserUpdationException;
 import com.govt.irctc.model.*;
 import com.govt.irctc.repository.AddressRepository;
+import com.govt.irctc.repository.BookingRepository;
 import com.govt.irctc.repository.TokenRepository;
 import com.govt.irctc.repository.UserRepository;
 import com.govt.irctc.validation.UserDetailsValidator;
@@ -29,18 +30,19 @@ public class UserServiceImpl implements UserService {
     private final UserDetailsValidator userDetailsValidator;
     private final AddressRepository addressRepository;
     private final UserSessionValidator userSessionValidator;
+    private final BookingRepository bookingRepository;
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder,
                            TokenRepository tokenRepository, UserDetailsValidator userDetailsValidator, AddressRepository addressRepository,
-                           UserSessionValidator userSessionValidator) {
+                           UserSessionValidator userSessionValidator, BookingRepository bookingRepository) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.tokenRepository = tokenRepository;
         this.userDetailsValidator = userDetailsValidator;
         this.addressRepository = addressRepository;
         this.userSessionValidator = userSessionValidator;
-
+        this.bookingRepository = bookingRepository;
     }
 
     @Override
@@ -321,66 +323,41 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String deleteUserById(String email, String token) throws UserNotFoundException, TokenNotFoundException,
-            UnauthorizedUserException, InvalidTokenException {
-        Optional<User> user = userRepository.findByUserEmail(email);
+    public String deleteUserById(String email, String token) throws TokenNotFoundException, UnauthorizedUserException,
+            InvalidTokenException {
+        validateUserToken(token);
 
-        if(user.isEmpty()) {
-            throw new UserNotFoundException("user doesn't exists");
+        Token existingToken = getToken(token);
+        User existingUser = existingToken.getUserTokens();
+
+        if(!existingUser.getUserEmail().equalsIgnoreCase(email)) {
+            throw new UnauthorizedUserException("Invalid user email");
         }
 
-        Optional<Token> getToken = tokenRepository.findByTokenValue(token);
-        if(getToken.isEmpty()) {
-            throw new TokenNotFoundException("token not found");
-        }
+        addressRepository.deleteUserAddresses(existingUser.getId());
+        bookingRepository.deleteBookingByUserId(existingUser.getId());
+        tokenRepository.updateUserTokens(existingUser.getId());
+        userRepository.deleteUserByUserEmail(email);
 
-
-        User existingUser = user.get();
-
-//        if(!getToken.get().getUserTokens().getUserEmail().equals(existingUser.getUserEmail()) &&
-//                getToken.get().getUserTokens().getUserRoles().stream()
-//                        .noneMatch(role -> role.getName().equalsIgnoreCase(UserRole.ADMIN.toString()))) {
-//            throw new UnauthorizedUserException("user is not authorized");
-//        }
-
-        // first set their token as deleted
-        for(Token tokens : existingUser.getUserTokens()) {
-            tokens.setDeleted(true);
-        }
-
-        existingUser.setDeleted(true);
-        userRepository.save(existingUser);
         return "user deleted successfully";
     }
 
     @Override
-    public List<BookingDto> getUserBookings(String email, String token) throws UserNotFoundException,
-            InvalidTokenException, UnauthorizedUserException {
+    public List<BookingDto> getUserBookings(String email, String token) throws
+            InvalidTokenException, UnauthorizedUserException, TokenNotFoundException {
+        validateUserToken(token);
 
+        Token existingToken = getToken(token);
+        User currentUser = existingToken.getUserTokens();
 
-        Optional<Token> getToken = tokenRepository.findByTokenValue(token);
-
-        if(getToken.isEmpty()) {
-            throw new InvalidTokenException("token not found");
+        if(!currentUser.getUserEmail().equalsIgnoreCase(email)) {
+            throw new UnauthorizedUserException("user is not authorized");
         }
 
-        Optional<User> user = userRepository.findByUserEmail(email);
-        if(user.isEmpty()) {
-            throw new UserNotFoundException("User does not exists");
-        }
+        List<Booking> bookings = bookingRepository.findAllByUserBookings(currentUser);
 
-//        if(!email.equals(user.get().getUserEmail()) &&
-//                getToken.get().getUserTokens().getUserRoles()
-//                        .stream().noneMatch(role -> role.getName().
-//                                equalsIgnoreCase(UserRole.ADMIN.toString()))) {
-//            throw new UnauthorizedUserException("User is not authorized");
-//        }
-
-        List<BookingDto> bookings = new ArrayList<>();
-
-        for(Booking booking : user.get().getUserBookings()) {
-
-        }
-        return bookings;
+        return bookings.stream()
+                .map(Booking::convertToBookingDto)
+                .toList();
     }
 }

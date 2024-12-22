@@ -19,6 +19,6 @@ public interface UserService {
     public UserDto getUserByEmail(String email, String token) throws UserNotFoundException, InvalidTokenException, UnauthorizedUserException;
     public List<UserDto> getAllUsers(String token) throws InvalidTokenException, UnauthorizedUserException;
     public String updateUserById(String token, UserUpdateDetailsDto updateDetailsDto) throws InvalidTokenException, UnauthorizedUserException, UserUpdationException;
-    public String deleteUserById(String email, String token) throws UserNotFoundException, TokenNotFoundException, UnauthorizedUserException, InvalidTokenException;
-    public List<BookingDto> getUserBookings(String email, String token) throws UserNotFoundException, InvalidTokenException, UnauthorizedUserException;
+    public String deleteUserById(String email, String token) throws TokenNotFoundException, UnauthorizedUserException, InvalidTokenException;
+    public List<BookingDto> getUserBookings(String email, String token) throws InvalidTokenException, UnauthorizedUserException, TokenNotFoundException;
 }
