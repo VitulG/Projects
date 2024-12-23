@@ -1,16 +1,14 @@
 package com.govt.irctc.model;
 
 import com.govt.irctc.enums.RouteStatus;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -18,16 +16,17 @@ import java.time.LocalTime;
 @AllArgsConstructor
 @Entity
 public class Route extends BaseModel {
-    @ManyToOne
-    private Train train;
+    private String routeNumber;
 
-    private String stationName;
+    @ManyToMany(mappedBy = "routes")
+    private List<Train> train;
 
-    private LocalTime arrivalTime;
-    private LocalTime departureTime;
-
-    private int platformNumber;
+    @ManyToMany
+    @JoinTable( name = "route_stations",
+            joinColumns = @JoinColumn(name = "route_id"),
+            inverseJoinColumns = @JoinColumn(name = "station_id") )
+    private List<Station> stations;
 
     @Enumerated(EnumType.STRING)
-    private RouteStatus trainStatus;
+    private RouteStatus routeStatus;
 }

@@ -36,9 +36,7 @@ public class User extends BaseModel{
 
     private Date userDob;
 
-    @Enumerated(EnumType.STRING)
-    @ElementCollection
-    private List<UserRole> userRoles;
+    private UserRole userRole;
 
     @OneToMany(mappedBy = "userTokens")
     private List<Token> userTokens;

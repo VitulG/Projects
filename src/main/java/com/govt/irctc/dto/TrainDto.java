@@ -17,11 +17,6 @@ import java.util.List;
 public class TrainDto {
     private String trainName;
     private String trainType;
+    private String trainStatus;
     private Long trainNumber;
-    private String trainArrivalCity;
-    private String trainDestinationCity;
-    private LocalTime startTime;
-    private LocalTime endTime;
-    private int platformNumber;
-    private List<SeatDto> seats;
 }

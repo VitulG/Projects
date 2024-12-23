@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -31,19 +30,13 @@ public class TrainController {
                                             @RequestHeader("Authorization") String token) {
         try {
             String message = trainService.addTrain(trainDto, token);
-            if(message == null || message.isEmpty()) {
-                throw new TrainCreationException("Unable to add the train");
-            }
             return new ResponseEntity<>(message, HttpStatus.CREATED);
         }catch(TrainCreationException trainCreationException) {
-            trainCreationException.printStackTrace();
             return new ResponseEntity<>(trainCreationException.getMessage(), HttpStatus.BAD_REQUEST);
         }catch(InvalidTokenException | UnauthorizedUserException securityException) {
-            securityException.printStackTrace();
             return new ResponseEntity<>(securityException.getMessage(), HttpStatus.UNAUTHORIZED);
         }catch (Exception ex) {
-            ex.printStackTrace();
-            return new ResponseEntity<>("Unable to add the train", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("something went wrong", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

@@ -97,7 +97,7 @@ public class UserServiceImpl implements UserService {
         newUser.setProfilePictureUrl(userSignupDetailsDto.getProfilePictureUrl());
         newUser.setUserTokens(new ArrayList<>());
         newUser.setUserAddresses(new ArrayList<>());
-        newUser.setUserRoles(new ArrayList<>());
+        newUser.setUserRole(UserRole.valueOf(userSignupDetailsDto.getUserRole().toUpperCase()));
         newUser.setUserBookings(new ArrayList<>());
 
         String givenRole = userSignupDetailsDto.getUserRole();
@@ -106,7 +106,6 @@ public class UserServiceImpl implements UserService {
             throw new UserCreationException("invalid given user role");
         }
 
-        newUser.getUserRoles().add(UserRole.valueOf(givenRole.toUpperCase()));
         User createdUser = userRepository.save(newUser);
 
         Address userAddress = new Address();
@@ -229,10 +228,7 @@ public class UserServiceImpl implements UserService {
 
         User currentUser = existingToken.getUserTokens();
 
-        boolean isAdmin = currentUser.getUserRoles().stream()
-                .anyMatch(UserRole.ADMIN::equals);
-
-        if(!isAdmin) {
+        if(currentUser.getUserRole() != UserRole.ADMIN) {
             throw new UnauthorizedUserException("user is not authorized");
         }
 
@@ -248,10 +244,7 @@ public class UserServiceImpl implements UserService {
 
         User currentUser = existingToken.getUserTokens();
 
-        boolean isAdmin = currentUser.getUserRoles().stream()
-                .anyMatch(UserRole.ADMIN::equals);
-
-        if(!isAdmin) {
+        if(currentUser.getUserRole() != UserRole.ADMIN) {
             throw new UnauthorizedUserException("user is not authorized");
         }
 

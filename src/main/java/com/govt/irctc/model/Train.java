@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalTime;
 import java.util.List;
 
 @Entity
@@ -24,15 +23,8 @@ public class Train extends BaseModel{
 
     private Long trainNumber;
 
-    private String arrivalCity;
-    private String destinationCity;
-
-    private LocalTime startTime;
-    private LocalTime endTime;
-
-    private int platformNumber;
-    private int trainDuration;
-    private double totalDistance;
+    @OneToMany(mappedBy = "train", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Schedule> schedules;
 
     @Enumerated(EnumType.STRING)
     private TrainStatus trainStatus;
@@ -41,9 +33,19 @@ public class Train extends BaseModel{
     private List<Booking> bookings;
 
     @OneToMany(mappedBy = "train", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Compartment> trainCompartments;
+    private List<Compartment> compartments;
 
-    @OneToMany(mappedBy = "train", cascade = CascadeType.ALL)
-    private List<Route> trainRoutes;
+    @ManyToMany
+    @JoinTable(
+            name = "train_routes",
+            joinColumns = @JoinColumn(name = "train_id"),
+            inverseJoinColumns = @JoinColumn(name = "route_id")  // assuming route_id is the primary key of Route table. Replace with actual column name if different.
+    )
+    private List<Route> routes;
 
+    @ManyToMany(mappedBy = "trains")
+    private List<Station> stations;
+
+    @ManyToOne
+    private Platform platform;
 }

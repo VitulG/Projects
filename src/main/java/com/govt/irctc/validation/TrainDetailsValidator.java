@@ -3,11 +3,13 @@ package com.govt.irctc.validation;
 import com.govt.irctc.enums.TrainType;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+
 @Component
 public class TrainDetailsValidator {
     public boolean validateTrainType(String type) {
-        return type.equalsIgnoreCase(TrainType.EXPRESS.toString()) || type.equalsIgnoreCase(TrainType.LOCAL.toString())
-                || type.equalsIgnoreCase(TrainType.PASSENGER.toString()) || type.equalsIgnoreCase(TrainType.SUPER_FAST.toString());
+        return Arrays.stream(TrainType.values())
+                .anyMatch(trainType -> trainType.name().equalsIgnoreCase(type));
     }
 
     public boolean validateTrainNumber(Long number) {
