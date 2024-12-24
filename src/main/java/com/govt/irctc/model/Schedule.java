@@ -1,5 +1,6 @@
 package com.govt.irctc.model;
 
+import com.govt.irctc.dto.ScheduleDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,6 +10,7 @@ import lombok.Setter;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 
@@ -18,8 +20,9 @@ import java.util.Set;
 @Getter
 @Setter
 public class Schedule extends BaseModel {
-    private LocalDateTime departureTime;
-    private LocalDateTime arrivalTime;
+    private String scheduleTitle;
+    private LocalTime departureTime;
+    private LocalTime arrivalTime;
 
     @Enumerated(EnumType.STRING)
     @ElementCollection(fetch = FetchType.EAGER)
@@ -32,4 +35,26 @@ public class Schedule extends BaseModel {
 
     @ManyToOne
     private Train train;
+
+    public ScheduleDto buildScheduleDto() {
+        ScheduleDto scheduleDto = new ScheduleDto();
+        scheduleDto.setScheduleTitle(getScheduleTitle());
+        scheduleDto.setTrainNumber(train.getTrainNumber());
+        scheduleDto.setTrainName(train.getTrainName());
+        scheduleDto.setTotalDistance(getTotalDistance());
+        scheduleDto.setDestinationCity(getDestinationCity());
+        scheduleDto.setArrivalCity(getArrivalCity());
+        scheduleDto.setArrivalTime(getArrivalTime());
+        scheduleDto.setDepartureTime(getDepartureTime());
+        scheduleDto.setDuration(convertToTimeFormat(getDuration()));
+        scheduleDto.setScheduledDays(getDayOfWeek()
+                .stream()
+                .map(String::valueOf)
+                .toList());
+        return scheduleDto;
+    }
+
+    private String convertToTimeFormat(Duration duration) {
+        return duration.toHoursPart() + " hours " + duration.toMinutesPart() + " minutes";
+    }
 }

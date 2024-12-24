@@ -9,13 +9,16 @@ import java.util.List;
 
 @Getter
 @Setter
-public class ScheduleDetailsDto {
+public class ScheduleDto {
+    private String trainName;
+    private Long trainNumber;
     private String scheduleTitle;
     private LocalTime departureTime;
     private LocalTime arrivalTime;
     private String arrivalCity;
     private String destinationCity;
-    private Duration duration;
+    private String duration;
     private double totalDistance;
     private List<String> scheduledDays;
+
 }
