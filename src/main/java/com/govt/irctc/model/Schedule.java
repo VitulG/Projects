@@ -10,6 +10,7 @@ import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @NoArgsConstructor
@@ -21,8 +22,8 @@ public class Schedule extends BaseModel {
     private LocalDateTime arrivalTime;
 
     @Enumerated(EnumType.STRING)
-    @ElementCollection
-    private List<DayOfWeek> dayOfWeek;
+    @ElementCollection(fetch = FetchType.EAGER)
+    private Set<DayOfWeek> dayOfWeek;
 
     private String arrivalCity;
     private String destinationCity;

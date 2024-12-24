@@ -36,14 +36,7 @@ public class Seat extends BaseModel {
     private SeatStatus seatStatus;
 
     public SeatDto convertToSeatDto() {
-        SeatDto seatDto = new SeatDto();
-        seatDto.setSeatType(compartment.getCompartmentType().toString());
-        List<String> seats = new ArrayList<>();
-        for(Seat seat : user.getUserSeats()) {
-            seats.add(seat.getSeatNumber());
-        }
-        seatDto.setSeatNumber(seats);
-        return seatDto;
+        return new SeatDto();
     }
 
 }

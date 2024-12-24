@@ -12,6 +12,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SeatDto {
+    private Long trainNumber;
+    private String compartment;
+    private String seatNumber;
     private String seatType;
-    private List<String> seatNumber;
+    private String isWindowSeat;
+    private String seatStatus;
 }

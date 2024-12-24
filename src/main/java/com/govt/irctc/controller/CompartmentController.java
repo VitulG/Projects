@@ -1,44 +1,38 @@
 package com.govt.irctc.controller;
 
-import com.govt.irctc.dto.SeatDto;
-import com.govt.irctc.dto.ShowSeatDto;
-import com.govt.irctc.exceptions.CompartmentException.CompartmentNotFoundException;
-import com.govt.irctc.exceptions.SeatExceptions.SeatDeletionException;
-import com.govt.irctc.exceptions.SeatExceptions.SeatNotCreatedException;
-import com.govt.irctc.exceptions.SeatExceptions.SeatUpdationException;
-import com.govt.irctc.exceptions.SeatExceptions.SeatsNotFoundException;
+import com.govt.irctc.dto.CompartmentDetailsDto;
+import com.govt.irctc.exceptions.CompartmentException.CompartmentCreationException;
 import com.govt.irctc.exceptions.SecurityExceptions.InvalidTokenException;
 import com.govt.irctc.exceptions.SecurityExceptions.TokenNotFoundException;
 import com.govt.irctc.exceptions.SecurityExceptions.UnauthorizedUserException;
 import com.govt.irctc.exceptions.TrainExceptions.TrainNotFoundException;
-import com.govt.irctc.service.seatservice.SeatService;
+import com.govt.irctc.service.compartmentservice.CompartmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/seats")
-public class SeatController {
-
-    private final SeatService seatService;
+@RequestMapping("/compartments")
+public class CompartmentController {
+    private final CompartmentService compartmentService;
 
     @Autowired
-    public SeatController(SeatService seatService) {
-        this.seatService = seatService;
+    public CompartmentController(CompartmentService compartmentService) {
+        this.compartmentService = compartmentService;
     }
 
-    @PostMapping("/add-seat")
-    public ResponseEntity<String> addSeats(@RequestBody SeatDto seatDto,
-                                           @RequestHeader("Authorization") String token) {
+    @PostMapping("/add-compartment")
+    public ResponseEntity<String> addCompartment(@RequestBody CompartmentDetailsDto compartmentDetailsDto,
+                                                 @RequestHeader("Authorization") String token) {
         try {
-            String response = seatService.addSeats(seatDto, token);
+            String response = compartmentService.addCompartment(compartmentDetailsDto, token);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (InvalidTokenException | UnauthorizedUserException securityException) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(securityException.getMessage());
-        } catch (TrainNotFoundException | CompartmentNotFoundException | TokenNotFoundException notFoundException) {
+        } catch (TrainNotFoundException | TokenNotFoundException notFoundException) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(notFoundException.getMessage());
-        } catch (SeatNotCreatedException creationException) {
+        } catch (CompartmentCreationException creationException) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(creationException.getMessage());
         } catch (Exception exception) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
