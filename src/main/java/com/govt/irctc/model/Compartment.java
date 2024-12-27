@@ -17,7 +17,6 @@ import java.util.List;
 public class Compartment extends BaseModel {
     private String compartmentNumber;
     private int totalSeats;
-    private double price;
 
     @Enumerated(EnumType.STRING)
     private CompartmentType compartmentType;

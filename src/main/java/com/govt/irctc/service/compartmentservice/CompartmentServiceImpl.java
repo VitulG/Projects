@@ -64,7 +64,6 @@ public class CompartmentServiceImpl implements CompartmentService {
         compartment.setCompartmentNumber(compartmentDetailsDto.getCompartmentNumber());
         compartment.setCompartmentType(CompartmentType.valueOf(compartmentDetailsDto.getCompartmentType().toUpperCase()));
         compartment.setTotalSeats(compartmentDetailsDto.getNumberOfSeats());
-        compartment.setPrice(compartmentDetailsDto.getPricePerSeat());
         compartment.setTrain(existingTrain);
 
         compartmentRepository.save(compartment);

@@ -17,6 +17,8 @@ import java.util.List;
 public class Station extends BaseModel {
     private String stationName;
     private String city;
+
+    @Enumerated(EnumType.STRING)
     private StationStatus stationStatus;
 
     @OneToMany(mappedBy = "station", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
