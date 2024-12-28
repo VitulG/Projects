@@ -1,6 +1,7 @@
 package com.govt.irctc.controller;
 
 import com.govt.irctc.dto.StationDetailsDto;
+import com.govt.irctc.exceptions.CityExceptions.CityNotFoundException;
 import com.govt.irctc.exceptions.RouteException.RouteNotFoundException;
 import com.govt.irctc.exceptions.SecurityExceptions.InvalidTokenException;
 import com.govt.irctc.exceptions.SecurityExceptions.TokenNotFoundException;
@@ -30,7 +31,8 @@ public class StationController {
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (InvalidTokenException | UnauthorizedUserException securityException) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(securityException.getMessage());
-        } catch (TrainNotFoundException | TokenNotFoundException | RouteNotFoundException notFoundException) {
+        } catch (TrainNotFoundException | TokenNotFoundException | RouteNotFoundException |
+                 CityNotFoundException notFoundException) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(notFoundException.getMessage());
         } catch (Exception exception) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());

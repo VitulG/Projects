@@ -3,16 +3,14 @@ package com.govt.irctc.service.stationservice;
 import com.govt.irctc.dto.StationDetailsDto;
 import com.govt.irctc.enums.StationStatus;
 import com.govt.irctc.enums.UserRole;
+import com.govt.irctc.exceptions.CityExceptions.CityNotFoundException;
 import com.govt.irctc.exceptions.RouteException.RouteNotFoundException;
 import com.govt.irctc.exceptions.SecurityExceptions.InvalidTokenException;
 import com.govt.irctc.exceptions.SecurityExceptions.TokenNotFoundException;
 import com.govt.irctc.exceptions.SecurityExceptions.UnauthorizedUserException;
 import com.govt.irctc.exceptions.TrainExceptions.TrainNotFoundException;
 import com.govt.irctc.model.*;
-import com.govt.irctc.repository.RouteRepository;
-import com.govt.irctc.repository.StationRepository;
-import com.govt.irctc.repository.TokenRepository;
-import com.govt.irctc.repository.TrainRepository;
+import com.govt.irctc.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,18 +23,20 @@ public class StationServiceImpl implements StationService {
     private final TrainRepository trainRepository;
     private final RouteRepository routeRepository;
     private final TokenRepository tokenRepository;
+    private final CityRepository cityRepository;
 
     @Autowired
     public StationServiceImpl(StationRepository stationRepository, TrainRepository trainRepository, RouteRepository routeRepository,
-                              TokenRepository tokenRepository) {
+                              TokenRepository tokenRepository, CityRepository cityRepository) {
         this.stationRepository = stationRepository;
         this.trainRepository = trainRepository;
         this.routeRepository = routeRepository;
         this.tokenRepository = tokenRepository;
+        this.cityRepository = cityRepository;
     }
 
     @Override
-    public String addStation(StationDetailsDto detailsDto, String token) throws TokenNotFoundException, InvalidTokenException, UnauthorizedUserException, TrainNotFoundException, RouteNotFoundException {
+    public String addStation(StationDetailsDto detailsDto, String token) throws TokenNotFoundException, InvalidTokenException, UnauthorizedUserException, TrainNotFoundException, RouteNotFoundException, CityNotFoundException {
         Token existingToken = getAndValidateToken(token);
 
         User admin = existingToken.getUserTokens();
@@ -47,7 +47,9 @@ public class StationServiceImpl implements StationService {
 
         Station newStation = new Station();
         newStation.setStationName(detailsDto.getStationName());
-        newStation.setCity(detailsDto.getCity());
+        City city = cityRepository.findByCityName(detailsDto.getCity())
+                .orElseThrow(() -> new CityNotFoundException("City not found"));
+
         newStation.setStationStatus(StationStatus.valueOf(detailsDto.getStationStatus().toUpperCase()));
 
         if(newStation.getTrains() == null) {
