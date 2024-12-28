@@ -32,6 +32,9 @@ public class User extends BaseModel{
     private String profilePictureUrl;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Notification> userNotifications;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Address> userAddresses;
 
     private Date userDob;

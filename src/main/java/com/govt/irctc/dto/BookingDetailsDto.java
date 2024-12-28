@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -13,8 +15,10 @@ import org.jetbrains.annotations.NotNull;
 public class BookingDetailsDto {
     private String name;
     private String email;
-    private String seatType;
     private Long trainNumber;
+    private String from;
+    private String to;
+    private String compartmentType;
     private int numberOfPassengers;
-    private String token;
+    private List<String> paymentMethods;
 }

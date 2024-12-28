@@ -16,7 +16,6 @@ import java.util.List;
 @Entity
 public class Station extends BaseModel {
     private String stationName;
-    private String city;
 
     @Enumerated(EnumType.STRING)
     private StationStatus stationStatus;
@@ -25,9 +24,9 @@ public class Station extends BaseModel {
     private List<Platform> platforms;
 
     @ManyToMany
-    @JoinTable( name = "station_routes",
+    @JoinTable(name = "station_routes",
             joinColumns = @JoinColumn(name = "station_id"),
-            inverseJoinColumns = @JoinColumn(name = "route_id") )
+            inverseJoinColumns = @JoinColumn(name = "route_id"))
     private List<Route> stationRoutes;
 
     @ManyToMany
@@ -37,5 +36,4 @@ public class Station extends BaseModel {
             inverseJoinColumns = @JoinColumn(name = "train_id")  // Assuming Train has a foreign key to Station with name "train_id"
     )
     private List<Train> trains;
-
 }

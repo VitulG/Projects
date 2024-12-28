@@ -2,18 +2,21 @@ package com.govt.irctc.service.bookingservice;
 
 import com.govt.irctc.dto.BookingDetailsDto;
 import com.govt.irctc.dto.BookingDto;
-import com.govt.irctc.enums.PaymentStatus;
-import com.govt.irctc.enums.TicketStatus;
+import com.govt.irctc.enums.*;
 import com.govt.irctc.exceptions.BookingExceptions.BookingCreatingException;
 import com.govt.irctc.exceptions.BookingExceptions.BookingNotFoundException;
+import com.govt.irctc.exceptions.CityExceptions.CityNotFoundException;
+import com.govt.irctc.exceptions.CompartmentException.CompartmentNotFoundException;
 import com.govt.irctc.exceptions.SeatExceptions.SeatTypeException;
 import com.govt.irctc.exceptions.SecurityExceptions.InvalidTokenException;
+import com.govt.irctc.exceptions.SecurityExceptions.TokenNotFoundException;
+import com.govt.irctc.exceptions.TrainExceptions.TrainNotFoundException;
 import com.govt.irctc.exceptions.UserExceptions.UserNotFoundException;
 import com.govt.irctc.model.*;
-import com.govt.irctc.repository.BookingRepository;
-import com.govt.irctc.repository.SeatRepository;
-import com.govt.irctc.repository.TrainRepository;
-import com.govt.irctc.repository.UserRepository;
+import com.govt.irctc.repository.*;
+import com.govt.irctc.strategy.DistanceCalculationStrategy;
+import com.govt.irctc.strategy.FareCalculationStrategy;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,176 +25,192 @@ import java.util.*;
 
 @Service
 public class BookingServiceImpl implements BookingService {
-
-    private final UserRepository userRepository;
+    private final TokenRepository tokenRepository;
     private final TrainRepository trainRepository;
     private final BookingRepository bookingRepository;
     private final SeatRepository seatRepository;
+    private final CompartmentRepository compartmentRepository;
+    private final FareCalculationStrategy fareCalculationStrategy;
+    private final CityRepository cityRepository;
+    private final DistanceCalculationStrategy distanceCalculationStrategy;
+
 
     @Autowired
-    public BookingServiceImpl(UserRepository userRepository, TrainRepository trainRepository,
-                              BookingRepository bookingRepository, SeatRepository seatRepository) {
+    public BookingServiceImpl(TokenRepository tokenRepository, TrainRepository trainRepository,
+                              BookingRepository bookingRepository, SeatRepository seatRepository, CompartmentRepository compartmentRepository, FareCalculationStrategy fareCalculationStrategy, CityRepository cityRepository, DistanceCalculationStrategy distanceCalculationStrategy) {
         this.bookingRepository = bookingRepository;
         this.trainRepository = trainRepository;
-        this.userRepository = userRepository;
+        this.tokenRepository = tokenRepository;
         this.seatRepository = seatRepository;
+        this.compartmentRepository = compartmentRepository;
+        this.fareCalculationStrategy = fareCalculationStrategy;
+        this.cityRepository = cityRepository;
+        this.distanceCalculationStrategy = distanceCalculationStrategy;
     }
 
     @Override
-    public String bookTickets(BookingDetailsDto bookingDetailsDto) throws BookingCreatingException, SeatTypeException, InvalidTokenException {
-//        // user must be register to book a ticket
-//
-//        if(tokenValidation.isTokenValid(bookingDetailsDto.getToken())) {
-//            throw new InvalidTokenException("Invalid token");
-//        }
-//
-//        Optional<User> user = userRepository.findByUserEmail(bookingDetailsDto.getEmail());
-//        if (user.isEmpty()) {
-//            throw new BookingCreatingException("User must be register");
-//        }
-//
-//        Train train = trainRepository.findByTrainNumber(bookingDetailsDto.getTrainNumber());
-//        if (train == null) {
-//            throw new BookingCreatingException("Train is not available");
-//        }
-//
-//        Seats trainSeats = train.getTrainSeats().get(0);
-//        if (trainSeats.getTotalNumberOfSeats() < bookingDetailsDto.getNumberOfPassengers()) {
-//            throw new BookingCreatingException("Sorry, the given number of seats are not available");
-//        }
-//
-//        // Check specific seat type availability
-//        Map<SeatType, Integer> seatAvailabilityMap = Map.of(
-//                SeatType.FIRST_AC, trainSeats.getOneAcSeats(),
-//                SeatType.SECOND_AC, trainSeats.getTwoAcSeats(),
-//                SeatType.THIRD_AC, trainSeats.getThreeAcSeats(),
-//                SeatType.SLEEPER, trainSeats.getSleeperSeats(),
-//                SeatType.GENERAL, trainSeats.getGeneralSeats()
-//        );
-//
-//        Map<SeatType, Double> seatPriceMap = Map.of(
-//                SeatType.FIRST_AC, trainSeats.getFirstAcPrice(),
-//                SeatType.SECOND_AC, trainSeats.getSecondAcPrice(),
-//                SeatType.THIRD_AC, trainSeats.getThirdAcPrice(),
-//                SeatType.SLEEPER, trainSeats.getSleeperPrice(),
-//                SeatType.GENERAL, trainSeats.getGeneralPrice()
-//        );
-//
-//        SeatType seatType = null;
-//
-//
-//        if(bookingDetailsDto.getSeatType().equals(SeatType.FIRST_AC.toString())) {
-//            seatType = SeatType.FIRST_AC;
-//        }else if(bookingDetailsDto.getSeatType().equals(SeatType.SECOND_AC.toString())) {
-//            seatType = SeatType.SECOND_AC;
-//        }else if(bookingDetailsDto.getSeatType().equals(SeatType.THIRD_AC.toString())) {
-//            seatType = SeatType.THIRD_AC;
-//        }else if(bookingDetailsDto.getSeatType().equals(SeatType.SLEEPER.toString())) {
-//            seatType = SeatType.SLEEPER;
-//        }else if(bookingDetailsDto.getSeatType().equals(SeatType.GENERAL.toString())) {
-//            seatType = SeatType.GENERAL;
-//        }
-//
-//        if(seatType == null) {
-//            throw new SeatTypeException("Seat type is not available");
-//        }
-//
-//        System.out.println(seatType);
-//
-//        if (seatAvailabilityMap.get(seatType) < bookingDetailsDto.getNumberOfPassengers()) {
-//            throw new BookingCreatingException("Given class seats are not available");
-//        }
-//
-//        Booking booking = new Booking();
-//        booking.setPnr(pnr++);
-//        booking.setBookingDate(LocalDateTime.now());
-//        booking.setTrainNumber(train.getTrainNumber());
-//        booking.setNumberOfPassengers(bookingDetailsDto.getNumberOfPassengers());
-//        booking.setSeatType(seatType);
-//        booking.setUserBookings(user.get());
-//        booking.setTrains(train);
-//        booking.setPaymentStatus(PaymentStatus.PENDING);
-//        booking.setTicketStatus(TicketStatus.BOOKED);
-//        booking.setCreatedAt(LocalDateTime.now());
-//        booking.setToken(bookingDetailsDto.getToken());
-//
-//        double totalPrice = bookingDetailsDto.getNumberOfPassengers() * seatPriceMap.get(seatType);
-//        booking.setTotalPrice(totalPrice);
-//
-//        // Update seats availability
-//        trainSeats.setTotalNumberOfSeats(trainSeats.getTotalNumberOfSeats() - bookingDetailsDto.getNumberOfPassengers());
-//        switch (seatType) {
-//            case FIRST_AC:
-//                trainSeats.setOneAcSeats(trainSeats.getOneAcSeats() - bookingDetailsDto.getNumberOfPassengers());
-//                break;
-//            case SECOND_AC:
-//                trainSeats.setTwoAcSeats(trainSeats.getTwoAcSeats() - bookingDetailsDto.getNumberOfPassengers());
-//                break;
-//            case THIRD_AC:
-//                trainSeats.setThreeAcSeats(trainSeats.getThreeAcSeats() - bookingDetailsDto.getNumberOfPassengers());
-//                break;
-//            case SLEEPER:
-//                trainSeats.setSleeperSeats(trainSeats.getSleeperSeats() - bookingDetailsDto.getNumberOfPassengers());
-//                break;
-//            case GENERAL:
-//                trainSeats.setGeneralSeats(trainSeats.getGeneralSeats() - bookingDetailsDto.getNumberOfPassengers());
-//                break;
-//            default:
-//                throw new SeatTypeException("Given seat type is not available");
-//        }
-//
-//        seatRepository.save(trainSeats);
-//        train.getTrainSeats().set(0, trainSeats);
-//        bookingRepository.save(booking);
-//
-//        return "Your ticket has been booked with id " + booking.getPnr();
-        return "";
+    @Transactional
+    public String bookTickets(BookingDetailsDto bookingDetailsDto, String token) throws BookingCreatingException, InvalidTokenException, TokenNotFoundException, TrainNotFoundException, CityNotFoundException, CompartmentNotFoundException {
+        Token existingToken = getAndValidateToken(token);
+        User user = existingToken.getUserTokens();
+
+        // validate the booking details here
+        Train train = trainRepository.findByTrainNumber(bookingDetailsDto.getTrainNumber())
+                .orElseThrow(() -> new TrainNotFoundException("Train not found with this number: "+bookingDetailsDto.getTrainNumber()));
+
+        CompartmentType compartmentType = CompartmentType.valueOf(bookingDetailsDto.getCompartmentType());
+
+        List<Seat> availableSeats = findAvailableSeats(train, compartmentType, bookingDetailsDto.getNumberOfPassengers());
+        allocateAvailableSeatsForUser(user, availableSeats, bookingDetailsDto.getNumberOfPassengers());
+
+        City src = cityRepository.findByCityName(bookingDetailsDto.getFrom())
+                .orElseThrow(() -> new CityNotFoundException("Source city not found"));
+        City dest = cityRepository.findByCityName(bookingDetailsDto.getTo())
+                .orElseThrow(() -> new CityNotFoundException("Destination city not found"));
+
+        validateStations(train, src, dest);
+
+        Booking booking = createBooking(bookingDetailsDto, user, train, src, dest, availableSeats.size());
+        processPayments(booking, bookingDetailsDto.getPaymentMethods());
+        bookingRepository.save(booking);
+        return "your ticket(s) has been booked with pnr: "+booking.getPnr();
+    }
+
+    private String generatePnr() {
+        return UUID.randomUUID().toString().replace("-","").substring(0,6);
+    }
+
+    private Token getAndValidateToken(String token) throws TokenNotFoundException, InvalidTokenException {
+        Token existingToken = tokenRepository.findByTokenValue(token)
+                .orElseThrow(() -> new TokenNotFoundException("Token not found"));
+        if(existingToken.isDeleted() || existingToken.getTokenValidity().before(new Date())) {
+            throw new InvalidTokenException("Token is expired or deleted");
+        }
+        return existingToken;
+    }
+
+    private void validateStations(Train train, City src, City dest) throws BookingCreatingException {
+        if(!train.getStations().contains(src.getStation())) {
+            throw new BookingCreatingException("source station not found");
+        }
+
+        if(!train.getStations().contains(dest.getStation())) {
+            throw new BookingCreatingException("destination station not found");
+        }
+    }
+
+    private List<Seat> findAvailableSeats(Train train, CompartmentType compartmentType, int numberOfPassengers) throws BookingCreatingException, CompartmentNotFoundException {
+        List<Compartment> compartments = compartmentRepository.findAllByTrainAndCompartmentType(train, compartmentType);
+
+        if(compartments.isEmpty()) {
+            throw new CompartmentNotFoundException("Compartment not found for the train: "+train.getTrainNumber()+
+                    " with compartment type: "+compartmentType);
+        }
+
+        for(Compartment compartment : compartments) {
+            List<Seat> compartmentAvailableSeats = seatRepository
+                    .findAllByCompartmentAndSeatStatus(compartment, SeatStatus.AVAILABLE);
+
+            if(compartmentAvailableSeats.size() >= numberOfPassengers) {
+                return compartmentAvailableSeats.subList(0, numberOfPassengers);
+            }
+
+        }
+        throw new BookingCreatingException("Not enough available seats in any compartment of this type: "+compartmentType);
+    }
+
+    private void allocateAvailableSeatsForUser(User user, List<Seat> availableSeats, int numberOfPassengers) {
+        for (int i = 0; i < numberOfPassengers; i++) {
+            Seat seat = availableSeats.get(i);
+            seat.setUser(user); seat.setSeatStatus(SeatStatus.BOOKED);
+            user.getUserSeats().add(seat);
+            seatRepository.save(seat);
+        }
+    }
+
+    private Booking createBooking(BookingDetailsDto bookingDetailsDto, User user, Train train, City src, City dest, int numberOfPassengers) {
+        Booking booking = new Booking();
+        booking.setPnr(generatePnr());
+        booking.setBookingDate(LocalDateTime.now());
+        booking.setNumberOfPassengers(bookingDetailsDto.getNumberOfPassengers());
+
+
+        double totalDistance = distanceCalculationStrategy.calculateDistance(src.getLatitude(), src.getLongitude(),
+                dest.getLatitude(), dest.getLongitude());
+
+        double totalFare = fareCalculationStrategy.calculateFare(CompartmentType.valueOf(bookingDetailsDto.getCompartmentType()),
+                totalDistance);
+
+        booking.setTotalPrice(totalFare);
+        booking.setCompartmentType(CompartmentType.valueOf(bookingDetailsDto.getCompartmentType()));
+
+        booking.setUserBookings(user);
+
+        booking.setTrains(train);
+        booking.setTicketStatus(TicketStatus.BOOKED);
+        user.getUserBookings().add(booking);
+
+        return booking;
+    }
+    private void processPayments(Booking booking, List<String> paymentMethods) throws BookingCreatingException {
+        List<Payment> payments = new ArrayList<>();
+
+        for(String paymentMethod : paymentMethods) {
+            Payment payment = new Payment();
+            payment.setRefundStatus(RefundStatus.NA);
+            payment.setMethod(PaymentMethod.valueOf(paymentMethod));
+            payment.setStatus(PaymentStatus.PENDING);
+            payment.setBooking(booking);
+            payments.add(payment);
+        }
+        booking.setPayments(payments);
     }
 
     @Override
     public BookingDto getBookingByPnrNumber(Long pnr) throws BookingNotFoundException {
-        Optional<Booking> booking = Optional.empty();
-        if(booking.isEmpty()) {
-            throw new BookingNotFoundException("booking does not exists with this pnr");
-        }
+//        Optional<Booking> booking = Optional.empty();
+//        if(booking.isEmpty()) {
+//            throw new BookingNotFoundException("booking does not exists with this pnr");
+//        }
         return null;
     }
 
     @Override
     public List<BookingDto> getAllUserBookings(String email) throws BookingNotFoundException, UserNotFoundException {
-        Optional<User> user = userRepository.findByUserEmail(email);
-        if(user.isEmpty()) {
-            throw new UserNotFoundException("user does not exists");
-        }
-
-        List<Booking> bookings = bookingRepository.findAllByUserBookings(user.get());
-
-        if(bookings == null || bookings.isEmpty()) {
-            throw new BookingNotFoundException("User did not book any ticket");
-        }
-
-        List<BookingDto> bookingDtos = new ArrayList<>();
-
-        for(Booking booking : bookings) {
-
-        }
-        return bookingDtos;
+//        Optional<User> user = userRepository.findByUserEmail(email);
+//        if(user.isEmpty()) {
+//            throw new UserNotFoundException("user does not exists");
+//        }
+//
+//        List<Booking> bookings = bookingRepository.findAllByUserBookings(user.get());
+//
+//        if(bookings == null || bookings.isEmpty()) {
+//            throw new BookingNotFoundException("User did not book any ticket");
+//        }
+//
+//        List<BookingDto> bookingDtos = new ArrayList<>();
+//
+//        for(Booking booking : bookings) {
+//
+//        }
+//        return bookingDtos;
+        return List.of();
     }
 
 
     @Override
     public String cancelTickets(Long pnr) throws BookingNotFoundException {
-        Optional<Booking> booking = Optional.empty();
-        if(booking.isEmpty()) {
-            throw new BookingNotFoundException("Booking is not exists");
-        }
-
-        Booking existingBooking = booking.get();
-
-        existingBooking.setUpdatedAt(LocalDateTime.now());
-        existingBooking.setDeleted(true);
-        existingBooking.setTicketStatus(TicketStatus.CANCELLED);
-        existingBooking.setPaymentStatus(PaymentStatus.CANCELLED);
+//        Optional<Booking> booking = Optional.empty();
+//        if(booking.isEmpty()) {
+//            throw new BookingNotFoundException("Booking is not exists");
+//        }
+//
+//        Booking existingBooking = booking.get();
+//
+//        existingBooking.setUpdatedAt(LocalDateTime.now());
+//        existingBooking.setDeleted(true);
+//        existingBooking.setTicketStatus(TicketStatus.CANCELLED);
+//        existingBooking.setPaymentStatus(PaymentStatus.CANCELLED);
 
 //        Seats trainSeats  = existingBooking.getTrains().getTrainSeats().get(0);
 //        trainSeats.setTotalNumberOfSeats(trainSeats.getTotalNumberOfSeats() + existingBooking.getNumberOfPassengers());

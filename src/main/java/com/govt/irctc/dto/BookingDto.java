@@ -17,11 +17,10 @@ public class BookingDto {
     private Long trainNumber;
     private String pnr;
     private LocalDateTime bookingDate;
-    private List<SeatDto> seats;
     private String compartmentType;
-    private int numberOfPassengers;
     private String ticketStatus;
     private double totalPrice;
     private String paymentStatus;
+    private List<String> bookedSeats;
     private String errorMessage;
 }

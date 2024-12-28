@@ -48,20 +48,6 @@ public class Booking extends BaseModel{
 
     public BookingDto convertToBookingDto() {
         BookingDto bookingDto = new BookingDto();
-        bookingDto.setBookingDate(getBookingDate());
-        bookingDto.setPnr(getPnr());
-        bookingDto.setPaymentStatus(getPaymentStatus().toString());
-        List<SeatDto> userOneBookingSeats = new ArrayList<>();
-
-        for(Seat seat : userBookings.getUserSeats()) {
-            userOneBookingSeats.add(seat.convertToSeatDto());
-        }
-        bookingDto.setSeats(userOneBookingSeats);
-        bookingDto.setTotalPrice(getTotalPrice());
-        bookingDto.setCompartmentType(getCompartmentType().toString());
-        bookingDto.setTicketStatus(getTicketStatus().toString());
-        bookingDto.setTrainNumber(trains.getTrainNumber());
-        bookingDto.setPaymentStatus(getPaymentStatus().toString());
 
         return bookingDto;
     }
