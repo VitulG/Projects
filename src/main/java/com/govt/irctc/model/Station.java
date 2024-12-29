@@ -23,6 +23,9 @@ public class Station extends BaseModel {
     @OneToMany(mappedBy = "station", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Platform> platforms;
 
+    @OneToOne
+    private City city;
+
     @ManyToMany
     @JoinTable(name = "station_routes",
             joinColumns = @JoinColumn(name = "station_id"),

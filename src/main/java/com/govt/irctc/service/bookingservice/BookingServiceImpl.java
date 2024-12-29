@@ -58,7 +58,7 @@ public class BookingServiceImpl implements BookingService {
         Train train = trainRepository.findByTrainNumber(bookingDetailsDto.getTrainNumber())
                 .orElseThrow(() -> new TrainNotFoundException("Train not found with this number: "+bookingDetailsDto.getTrainNumber()));
 
-        CompartmentType compartmentType = CompartmentType.valueOf(bookingDetailsDto.getCompartmentType());
+        CompartmentType compartmentType = CompartmentType.valueOf(bookingDetailsDto.getCompartmentType().toUpperCase());
 
         List<Seat> availableSeats = findAvailableSeats(train, compartmentType, bookingDetailsDto.getNumberOfPassengers());
         allocateAvailableSeatsForUser(user, availableSeats, bookingDetailsDto.getNumberOfPassengers());
@@ -158,7 +158,7 @@ public class BookingServiceImpl implements BookingService {
         for(String paymentMethod : paymentMethods) {
             Payment payment = new Payment();
             payment.setRefundStatus(RefundStatus.NA);
-            payment.setMethod(PaymentMethod.valueOf(paymentMethod));
+            payment.setMethod(PaymentMethod.valueOf(paymentMethod.toUpperCase()));
             payment.setStatus(PaymentStatus.PENDING);
             payment.setBooking(booking);
             payments.add(payment);
@@ -171,7 +171,6 @@ public class BookingServiceImpl implements BookingService {
 //        Optional<Booking> booking = Optional.empty();
 //        if(booking.isEmpty()) {
 //            throw new BookingNotFoundException("booking does not exists with this pnr");
-//        }
         return null;
     }
 

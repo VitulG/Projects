@@ -11,6 +11,7 @@ import com.govt.irctc.exceptions.SecurityExceptions.UnauthorizedUserException;
 import com.govt.irctc.exceptions.TrainExceptions.TrainNotFoundException;
 import com.govt.irctc.model.*;
 import com.govt.irctc.repository.*;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +37,7 @@ public class StationServiceImpl implements StationService {
     }
 
     @Override
+    @Transactional
     public String addStation(StationDetailsDto detailsDto, String token) throws TokenNotFoundException, InvalidTokenException, UnauthorizedUserException, TrainNotFoundException, RouteNotFoundException, CityNotFoundException {
         Token existingToken = getAndValidateToken(token);
 
@@ -49,6 +51,8 @@ public class StationServiceImpl implements StationService {
         newStation.setStationName(detailsDto.getStationName());
         City city = cityRepository.findByCityName(detailsDto.getCity())
                 .orElseThrow(() -> new CityNotFoundException("City not found"));
+        newStation.setCity(city);
+        city.setStation(newStation);
 
         newStation.setStationStatus(StationStatus.valueOf(detailsDto.getStationStatus().toUpperCase()));
 
