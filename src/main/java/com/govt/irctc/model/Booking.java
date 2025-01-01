@@ -45,9 +45,22 @@ public class Booking extends BaseModel{
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
 
+    @OneToMany(mappedBy ="booking", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Seat> bookedSeats;
+
     public BookingDto convertToBookingDto() {
         BookingDto bookingDto = new BookingDto();
-
+        bookingDto.setTrainNumber(this.trains.getTrainNumber());
+        bookingDto.setPnr(pnr);
+        bookingDto.setBookingDate(bookingDate);
+        bookingDto.setCompartmentType(compartmentType.toString().toLowerCase());
+        bookingDto.setTicketStatus(ticketStatus.toString().toLowerCase());
+        bookingDto.setPaymentStatus(paymentStatus.toString().toLowerCase());
+        bookingDto.setTotalPrice(totalPrice);
+        bookingDto.setBookedSeats(getBookedSeats()
+                .stream()
+                .map(Seat::convertToSeatDto)
+                .toList());
         return bookingDto;
     }
 }

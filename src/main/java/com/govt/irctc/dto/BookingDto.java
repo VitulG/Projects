@@ -21,6 +21,6 @@ public class BookingDto {
     private String ticketStatus;
     private double totalPrice;
     private String paymentStatus;
-    private List<String> bookedSeats;
+    private List<BookedSeatDto> bookedSeats;
     private String errorMessage;
 }

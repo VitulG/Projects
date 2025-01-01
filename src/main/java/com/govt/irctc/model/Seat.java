@@ -1,5 +1,6 @@
 package com.govt.irctc.model;
 
+import com.govt.irctc.dto.BookedSeatDto;
 import com.govt.irctc.dto.SeatDto;
 import com.govt.irctc.enums.SeatStatus;
 import com.govt.irctc.enums.SeatType;
@@ -35,8 +36,16 @@ public class Seat extends BaseModel {
     @Enumerated(EnumType.STRING)
     private SeatStatus seatStatus;
 
-    public SeatDto convertToSeatDto() {
-        return new SeatDto();
-    }
+    @ManyToOne
+    private Booking booking;
 
+    public BookedSeatDto convertToSeatDto() {
+        BookedSeatDto seatDto =  new BookedSeatDto();
+        seatDto.setSeatNumber(seatNumber);
+        seatDto.setSeatType(getSeatType().toString().toLowerCase());
+        seatDto.setIsWindowSeat(String.valueOf(isWindowSeat));
+        seatDto.setSeatStatus(getSeatStatus().toString().toLowerCase());
+
+        return seatDto;
+    }
 }

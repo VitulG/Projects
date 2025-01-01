@@ -15,11 +15,13 @@ import com.govt.irctc.repository.UserRepository;
 import com.govt.irctc.validation.UserDetailsValidator;
 import com.govt.irctc.validation.UserSessionValidator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,11 +33,12 @@ public class UserServiceImpl implements UserService {
     private final AddressRepository addressRepository;
     private final UserSessionValidator userSessionValidator;
     private final BookingRepository bookingRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder,
                            TokenRepository tokenRepository, UserDetailsValidator userDetailsValidator, AddressRepository addressRepository,
-                           UserSessionValidator userSessionValidator, BookingRepository bookingRepository) {
+                           UserSessionValidator userSessionValidator, BookingRepository bookingRepository, RedisTemplate<String, Object> redisTemplate) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.tokenRepository = tokenRepository;
@@ -43,6 +46,7 @@ public class UserServiceImpl implements UserService {
         this.addressRepository = addressRepository;
         this.userSessionValidator = userSessionValidator;
         this.bookingRepository = bookingRepository;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -179,6 +183,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public LoginResponseDto getAndValidateUser(LoginDetailsDto loginDetailsDto) throws InvalidCredentialsException,
             PasswordMismatchException, LoginValidationException {
+
+        if(redisTemplate.opsForValue().get(loginDetailsDto.getEmail()) != null) {
+            return (LoginResponseDto) redisTemplate.opsForValue().get(loginDetailsDto.getEmail());
+        }
+
         User user = userRepository.findByUserEmail(loginDetailsDto.getEmail())
                 .orElseThrow(() -> new InvalidCredentialsException("user not found"));
 
@@ -197,7 +206,9 @@ public class UserServiceImpl implements UserService {
         tokenRepository.save(token);
         user.getUserTokens().add(token);
 
-        return buildResponse(user);
+        LoginResponseDto response = buildResponse(user);
+        redisTemplate.opsForValue().set(loginDetailsDto.getEmail(), response, 1, TimeUnit.HOURS);
+        return response;
     }
 
     private LoginResponseDto buildResponse(User user) {
@@ -226,6 +237,10 @@ public class UserServiceImpl implements UserService {
             UserNotFoundException, InvalidTokenException, UnauthorizedUserException {
         Token existingToken = getToken(token);
 
+        if(redisTemplate.opsForValue().get(email) != null) {
+            return (UserDto) redisTemplate.opsForValue().get(email);
+        }
+
         User currentUser = existingToken.getUserTokens();
 
         if(currentUser.getUserRole() != UserRole.ADMIN) {
@@ -235,7 +250,9 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByUserEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        return buildUserDto(user);
+        UserDto response =  buildUserDto(user);
+        redisTemplate.opsForValue().set(email, response, 1, TimeUnit.HOURS);
+        return response;
     }
 
     @Override
