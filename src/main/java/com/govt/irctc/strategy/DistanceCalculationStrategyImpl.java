@@ -23,6 +23,6 @@ public class DistanceCalculationStrategyImpl implements DistanceCalculationStrat
                 * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-        return EARTH_RADIUS * c; // Distance in km
+        return Math.round(EARTH_RADIUS * c); // Distance in km
     }
 }

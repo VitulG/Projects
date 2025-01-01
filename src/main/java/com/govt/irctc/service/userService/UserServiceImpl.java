@@ -19,7 +19,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -258,17 +257,23 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserDto> getAllUsers(String token) throws InvalidTokenException, UnauthorizedUserException {
         Token existingToken = getToken(token);
-
         User currentUser = existingToken.getUserTokens();
 
         if(currentUser.getUserRole() != UserRole.ADMIN) {
             throw new UnauthorizedUserException("user is not authorized");
         }
 
+        if(redisTemplate.opsForValue().get(currentUser.getUserEmail()) != null) {
+            return (List<UserDto>) redisTemplate.opsForValue().get(currentUser.getUserEmail());
+        }
+
         List<User> users = userRepository.findAll();
-        return users.stream()
+        List<UserDto> allUsers = users.stream()
                 .map(this::buildUserDto)
                 .collect(Collectors.toList());
+
+        redisTemplate.opsForValue().set(currentUser.getUserEmail(), allUsers);
+        return allUsers;
     }
 
     private Token getToken(String token) throws InvalidTokenException{
@@ -294,6 +299,8 @@ public class UserServiceImpl implements UserService {
     }
 
     private void updateUserDetails(User user, UserUpdateDetailsDto updateDetailsDto) throws UserUpdationException {
+        String prevEmail = user.getUserEmail();
+
         if (updateDetailsDto.getUpdatedUserName() != null &&
                 !userDetailsValidator.isValidUserName(updateDetailsDto.getUpdatedUserName())) {
             throw new UserUpdationException("Incorrect user name");
@@ -330,6 +337,11 @@ public class UserServiceImpl implements UserService {
         }
         user.setUserPhoneNumber(updateDetailsDto.getUpdatedPhoneNumber());
         user.setProfilePictureUrl(updateDetailsDto.getProfilePictureUrl());
+
+        if(redisTemplate.opsForValue().get(prevEmail) != null) {
+            redisTemplate.delete(prevEmail);
+            redisTemplate.opsForValue().set(user.getUserEmail(), user);
+        }
     }
 
     @Override
@@ -347,6 +359,11 @@ public class UserServiceImpl implements UserService {
         addressRepository.deleteUserAddresses(existingUser.getId());
         bookingRepository.deleteBookingByUserId(existingUser.getId());
         tokenRepository.updateUserTokens(existingUser.getId());
+
+        if(redisTemplate.opsForValue().get(existingUser.getUserEmail()) != null) {
+            redisTemplate.delete(existingUser.getUserEmail());
+        }
+
         userRepository.deleteUserByUserEmail(email);
 
         return "user deleted successfully";
@@ -364,10 +381,17 @@ public class UserServiceImpl implements UserService {
             throw new UnauthorizedUserException("user is not authorized");
         }
 
+        if(redisTemplate.opsForValue().get(currentUser.getUserEmail()) != null) {
+            return (List<BookingDto>) redisTemplate.opsForValue().get(currentUser.getUserEmail());
+        }
+
         List<Booking> bookings = bookingRepository.findAllByUserBookings(currentUser);
 
-        return bookings.stream()
+        List<BookingDto> userBookings =  bookings.stream()
                 .map(Booking::convertToBookingDto)
                 .toList();
+
+        redisTemplate.opsForValue().set(currentUser.getUserEmail(), userBookings);
+        return userBookings;
     }
 }

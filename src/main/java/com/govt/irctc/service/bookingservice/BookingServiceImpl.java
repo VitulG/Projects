@@ -70,9 +70,14 @@ public class BookingServiceImpl implements BookingService {
 
         validateStations(train, src, dest);
 
-        Booking booking = createBooking(bookingDetailsDto, user, train, src, dest, availableSeats.size());
+        Booking booking = createBooking(bookingDetailsDto, user, train, src, dest, availableSeats.size(), availableSeats);
         processPayments(booking, bookingDetailsDto.getPaymentMethods());
         bookingRepository.save(booking);
+
+        for(Seat seat : booking.getBookedSeats()) {
+            seat.setBooking(booking);
+        }
+
         return "your ticket(s) has been booked with pnr: "+booking.getPnr();
     }
 
@@ -122,23 +127,24 @@ public class BookingServiceImpl implements BookingService {
     private void allocateAvailableSeatsForUser(User user, List<Seat> availableSeats, int numberOfPassengers) {
         for (int i = 0; i < numberOfPassengers; i++) {
             Seat seat = availableSeats.get(i);
-            seat.setUser(user); seat.setSeatStatus(SeatStatus.BOOKED);
-            user.getUserSeats().add(seat);
+            seat.setSeatStatus(SeatStatus.BOOKED);
             seatRepository.save(seat);
         }
     }
 
-    private Booking createBooking(BookingDetailsDto bookingDetailsDto, User user, Train train, City src, City dest, int numberOfPassengers) {
+    private Booking createBooking(BookingDetailsDto bookingDetailsDto, User user, Train train, City src,
+                                  City dest, int numberOfPassengers, List<Seat> bookedSeats) {
         Booking booking = new Booking();
         booking.setPnr(generatePnr());
         booking.setBookingDate(LocalDateTime.now());
         booking.setNumberOfPassengers(bookingDetailsDto.getNumberOfPassengers());
-
+        booking.setBookedSeats(bookedSeats);
 
         double totalDistance = distanceCalculationStrategy.calculateDistance(src.getLatitude(), src.getLongitude(),
                 dest.getLatitude(), dest.getLongitude());
 
-        double totalFare = fareCalculationStrategy.calculateFare(CompartmentType.valueOf(bookingDetailsDto.getCompartmentType()),
+        double totalFare = fareCalculationStrategy.calculateFare(CompartmentType.valueOf(bookingDetailsDto
+                        .getCompartmentType()),
                 totalDistance);
 
         booking.setTotalPrice(totalFare);

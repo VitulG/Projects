@@ -30,9 +30,6 @@ public class Seat extends BaseModel {
 
     private boolean isWindowSeat;
 
-    @ManyToOne
-    private User user;
-
     @Enumerated(EnumType.STRING)
     private SeatStatus seatStatus;
 

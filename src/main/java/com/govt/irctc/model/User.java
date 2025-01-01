@@ -39,13 +39,11 @@ public class User extends BaseModel{
 
     private Date userDob;
 
+    @Enumerated(EnumType.STRING)
     private UserRole userRole;
 
     @OneToMany(mappedBy = "userTokens")
     private List<Token> userTokens;
-
-    @OneToMany
-    private List<Seat> userSeats;
 
     @OneToMany(mappedBy = "userBookings", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
     private List<Booking> userBookings;
