@@ -12,6 +12,7 @@ import com.govt.irctc.repository.AddressRepository;
 import com.govt.irctc.repository.BookingRepository;
 import com.govt.irctc.repository.TokenRepository;
 import com.govt.irctc.repository.UserRepository;
+import com.govt.irctc.service.notificationservice.NotificationService;
 import com.govt.irctc.validation.UserDetailsValidator;
 import com.govt.irctc.validation.UserSessionValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,11 +34,12 @@ public class UserServiceImpl implements UserService {
     private final UserSessionValidator userSessionValidator;
     private final BookingRepository bookingRepository;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final NotificationService notificationService;
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder,
                            TokenRepository tokenRepository, UserDetailsValidator userDetailsValidator, AddressRepository addressRepository,
-                           UserSessionValidator userSessionValidator, BookingRepository bookingRepository, RedisTemplate<String, Object> redisTemplate) {
+                           UserSessionValidator userSessionValidator, BookingRepository bookingRepository, RedisTemplate<String, Object> redisTemplate, NotificationService notificationService) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.tokenRepository = tokenRepository;
@@ -46,6 +48,7 @@ public class UserServiceImpl implements UserService {
         this.userSessionValidator = userSessionValidator;
         this.bookingRepository = bookingRepository;
         this.redisTemplate = redisTemplate;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -122,6 +125,7 @@ public class UserServiceImpl implements UserService {
         addressRepository.save(userAddress);
 
         newUser.getUserAddresses().add(userAddress);
+        notificationService.createNotification(createdUser, "Hello! welcome to APPRTC app", "Welcome");
         return "User created successfully with id: "+ createdUser.getId();
     }
 
