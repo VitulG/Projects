@@ -3,6 +3,7 @@ package com.govt.irctc.controller;
 import com.govt.irctc.dto.*;
 import com.govt.irctc.exceptions.SecurityExceptions.*;
 import com.govt.irctc.exceptions.UserExceptions.*;
+import com.govt.irctc.exceptions.addressexceptions.AddressCreationException;
 import com.govt.irctc.model.Booking;
 import com.govt.irctc.service.userService.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,7 @@ public class UserController {
                 throw new UserCreationException("Unable to create user");
             }
             return new ResponseEntity<>(message, HttpStatus.CREATED);
-        } catch(UserCreationException | UserAlreadyExistsException userException) {
+        } catch(UserCreationException | AddressCreationException | UserAlreadyExistsException userException) {
             return new ResponseEntity<>(userException.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception ex) {
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -42,7 +43,7 @@ public class UserController {
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginDetailsDto loginDetailsDto) {
         LoginResponseDto response;
         try {
-            response = userService.getAndValidateUser(loginDetailsDto);
+            response = userService.loginUser(loginDetailsDto);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (InvalidCredentialsException | PasswordMismatchException | LoginValidationException exception) {
             response = new LoginResponseDto();

@@ -7,15 +7,16 @@ import com.govt.irctc.exceptions.UserExceptions.UserAlreadyExistsException;
 import com.govt.irctc.exceptions.UserExceptions.UserCreationException;
 import com.govt.irctc.exceptions.UserExceptions.UserNotFoundException;
 import com.govt.irctc.exceptions.UserExceptions.UserUpdationException;
+import com.govt.irctc.exceptions.addressexceptions.AddressCreationException;
 
 import java.util.List;
 
 public interface UserService {
     public String addUser(UserSignupDetailsDto userSignupDetailsDto)
-            throws UserCreationException, UserAlreadyExistsException;
+            throws UserCreationException, UserAlreadyExistsException, AddressCreationException;
     public String logoutUser(String token) throws TokenNotFoundException;
     public UserDto validateUserToken(String token) throws TokenNotFoundException, InvalidTokenException;
-    public LoginResponseDto getAndValidateUser(LoginDetailsDto loginDetailsDto) throws InvalidCredentialsException, PasswordMismatchException, LoginValidationException;
+    public LoginResponseDto loginUser(LoginDetailsDto loginDetailsDto) throws InvalidCredentialsException, PasswordMismatchException, LoginValidationException;
     public UserDto getUserByEmail(String email, String token) throws UserNotFoundException, InvalidTokenException, UnauthorizedUserException;
     public List<UserDto> getAllUsers(String token) throws InvalidTokenException, UnauthorizedUserException;
     public String updateUserById(String token, UserUpdateDetailsDto updateDetailsDto) throws InvalidTokenException, UnauthorizedUserException, UserUpdationException;

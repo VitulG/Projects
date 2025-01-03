@@ -8,8 +8,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface AddressRepository extends JpaRepository<Address, Long> {
+    Optional<Address> findByHouseNumber(int houseNumber);
+
     @Modifying
     @Transactional
     @Query("UPDATE Address a SET a.isDeleted = true WHERE a.user.id =:userId")

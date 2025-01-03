@@ -7,11 +7,14 @@ import com.govt.irctc.exceptions.UserExceptions.UserAlreadyExistsException;
 import com.govt.irctc.exceptions.UserExceptions.UserCreationException;
 import com.govt.irctc.exceptions.UserExceptions.UserNotFoundException;
 import com.govt.irctc.exceptions.UserExceptions.UserUpdationException;
+import com.govt.irctc.exceptions.addressexceptions.AddressCreationException;
 import com.govt.irctc.model.*;
 import com.govt.irctc.repository.AddressRepository;
 import com.govt.irctc.repository.BookingRepository;
 import com.govt.irctc.repository.TokenRepository;
 import com.govt.irctc.repository.UserRepository;
+import com.govt.irctc.service.addressservice.AddressService;
+import com.govt.irctc.service.kafkaservice.KafkaService;
 import com.govt.irctc.service.notificationservice.NotificationService;
 import com.govt.irctc.validation.UserDetailsValidator;
 import com.govt.irctc.validation.UserSessionValidator;
@@ -35,11 +38,13 @@ public class UserServiceImpl implements UserService {
     private final BookingRepository bookingRepository;
     private final RedisTemplate<String, Object> redisTemplate;
     private final NotificationService notificationService;
+    private final AddressService addressService;
+    private final KafkaService kafkaService;
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder,
                            TokenRepository tokenRepository, UserDetailsValidator userDetailsValidator, AddressRepository addressRepository,
-                           UserSessionValidator userSessionValidator, BookingRepository bookingRepository, RedisTemplate<String, Object> redisTemplate, NotificationService notificationService) {
+                           UserSessionValidator userSessionValidator, BookingRepository bookingRepository, RedisTemplate<String, Object> redisTemplate, NotificationService notificationService, AddressService addressService, KafkaService kafkaService) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.tokenRepository = tokenRepository;
@@ -49,15 +54,32 @@ public class UserServiceImpl implements UserService {
         this.bookingRepository = bookingRepository;
         this.redisTemplate = redisTemplate;
         this.notificationService = notificationService;
+        this.addressService = addressService;
+        this.kafkaService = kafkaService;
     }
 
     @Override
-    public String addUser(UserSignupDetailsDto userSignupDetailsDto) throws UserCreationException, UserAlreadyExistsException {
-        Optional<User> user = userRepository.findByUserEmail(userSignupDetailsDto.getUserEmail());
+    public String addUser(UserSignupDetailsDto userSignupDetailsDto) throws UserCreationException, UserAlreadyExistsException, AddressCreationException {
+        Optional<User> optionalUser = userRepository.findByUserEmail(userSignupDetailsDto.getUserEmail());
 
-        if(user.isPresent() && !user.get().isDeleted()) {
+        if(optionalUser.isPresent() && !optionalUser.get().isDeleted()) {
             throw new UserAlreadyExistsException("User already exists");
         }
+
+        validateUserDetails(userSignupDetailsDto);
+
+        User newUser = createUser(userSignupDetailsDto);
+
+        Address userAddress = addressService.createAddress(newUser, userSignupDetailsDto.getHouseNumber(), userSignupDetailsDto.getStreetName(),
+                userSignupDetailsDto.getCity(), userSignupDetailsDto.getState(), userSignupDetailsDto.getCountry(), userSignupDetailsDto.getPinCode());
+
+        newUser.getUserAddresses().add(userAddress);
+        notificationService.createNotification(newUser, "Hello! welcome to APPRTC app", "Welcome");
+        kafkaService.sendMessage("app", newUser.getUserName(), "Welcome to APPRTC app");
+        return "User created successfully with id: "+ newUser.getId();
+    }
+
+    private void validateUserDetails(UserSignupDetailsDto userSignupDetailsDto) throws UserCreationException {
 
         if(!userDetailsValidator.isValidUserName(userSignupDetailsDto.getUsername())) {
             throw new UserCreationException("invalid username, username must starts with an alphabet");
@@ -91,7 +113,9 @@ public class UserServiceImpl implements UserService {
         if(!userDetailsValidator.isValidUserRole(userSignupDetailsDto.getUserRole())) {
             throw new UserCreationException("Invalid User Role. role can either user or admin");
         }
+    }
 
+    private User createUser(UserSignupDetailsDto userSignupDetailsDto) throws UserCreationException {
         User newUser = new User();
         newUser.setUserAge(userSignupDetailsDto.getUserAge());
         newUser.setUserDob(userSignupDetailsDto.getUserDob());
@@ -111,22 +135,7 @@ public class UserServiceImpl implements UserService {
         if(!givenRole.equalsIgnoreCase("admin") && !givenRole.equalsIgnoreCase("user")) {
             throw new UserCreationException("invalid given user role");
         }
-
-        User createdUser = userRepository.save(newUser);
-
-        Address userAddress = new Address();
-        userAddress.setHouseNumber(userSignupDetailsDto.getHouseNumber());
-        userAddress.setStreet(userSignupDetailsDto.getStreetName());
-        userAddress.setCity(userSignupDetailsDto.getCity());
-        userAddress.setState(userSignupDetailsDto.getState());
-        userAddress.setCountry(userSignupDetailsDto.getCountry());
-        userAddress.setPinCode(userSignupDetailsDto.getPinCode());
-        userAddress.setUser(newUser);
-        addressRepository.save(userAddress);
-
-        newUser.getUserAddresses().add(userAddress);
-        notificationService.createNotification(createdUser, "Hello! welcome to APPRTC app", "Welcome");
-        return "User created successfully with id: "+ createdUser.getId();
+        return userRepository.save(newUser);
     }
 
     @Override
@@ -143,9 +152,7 @@ public class UserServiceImpl implements UserService {
         User user = existingToken.getUserTokens();
         user.getUserTokens().remove(existingToken);
         userRepository.save(user);
-
         tokenRepository.save(existingToken);
-
         return "logged out successfully";
     }
 
@@ -184,7 +191,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public LoginResponseDto getAndValidateUser(LoginDetailsDto loginDetailsDto) throws InvalidCredentialsException,
+    public LoginResponseDto loginUser(LoginDetailsDto loginDetailsDto) throws InvalidCredentialsException,
             PasswordMismatchException, LoginValidationException {
 
         if(redisTemplate.opsForValue().get(loginDetailsDto.getEmail()) != null) {
