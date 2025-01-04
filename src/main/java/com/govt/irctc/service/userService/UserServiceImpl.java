@@ -1,5 +1,7 @@
 package com.govt.irctc.service.userService;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.govt.irctc.dto.*;
 import com.govt.irctc.enums.UserRole;
 import com.govt.irctc.exceptions.SecurityExceptions.*;
@@ -20,6 +22,7 @@ import com.govt.irctc.validation.UserDetailsValidator;
 import com.govt.irctc.validation.UserSessionValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -39,12 +42,15 @@ public class UserServiceImpl implements UserService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final NotificationService notificationService;
     private final AddressService addressService;
-    private final KafkaService kafkaService;
+    private final ObjectMapper objectMapper;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder,
                            TokenRepository tokenRepository, UserDetailsValidator userDetailsValidator, AddressRepository addressRepository,
-                           UserSessionValidator userSessionValidator, BookingRepository bookingRepository, RedisTemplate<String, Object> redisTemplate, NotificationService notificationService, AddressService addressService, KafkaService kafkaService) {
+                           UserSessionValidator userSessionValidator, BookingRepository bookingRepository, RedisTemplate<String, Object> redisTemplate,
+                           NotificationService notificationService, AddressService addressService, KafkaTemplate<String, String> kafkaTemplate,
+                           ObjectMapper objectMapper) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.tokenRepository = tokenRepository;
@@ -55,11 +61,12 @@ public class UserServiceImpl implements UserService {
         this.redisTemplate = redisTemplate;
         this.notificationService = notificationService;
         this.addressService = addressService;
-        this.kafkaService = kafkaService;
+        this.objectMapper = objectMapper;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     @Override
-    public String addUser(UserSignupDetailsDto userSignupDetailsDto) throws UserCreationException, UserAlreadyExistsException, AddressCreationException {
+    public String addUser(UserSignupDetailsDto userSignupDetailsDto) throws UserCreationException, UserAlreadyExistsException, AddressCreationException, JsonProcessingException {
         Optional<User> optionalUser = userRepository.findByUserEmail(userSignupDetailsDto.getUserEmail());
 
         if(optionalUser.isPresent() && !optionalUser.get().isDeleted()) {
@@ -75,7 +82,18 @@ public class UserServiceImpl implements UserService {
 
         newUser.getUserAddresses().add(userAddress);
         notificationService.createNotification(newUser, "Hello! welcome to APPRTC app", "Welcome");
-        kafkaService.sendMessage("app", newUser.getUserName(), "Welcome to APPRTC app");
+
+        // here it should put the new user inside the message queue
+        SendEmailDto emailDto = new SendEmailDto();
+        emailDto.setFrom("guptavitul@gmail.com");
+        emailDto.setTo(userSignupDetailsDto.getUserEmail());
+        emailDto.setSubject("Welcome to APPRTC!");
+        emailDto.setBody("Your APPRTC account has been created successfully. " +
+                "You can now use this email address and password to log in to the application.");
+
+        String emailDtoString = objectMapper.writeValueAsString(emailDto);
+        kafkaTemplate.send("email-topic", emailDtoString);
+
         return "User created successfully with id: "+ newUser.getId();
     }
 

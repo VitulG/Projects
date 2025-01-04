@@ -1,6 +1,7 @@
 package com.govt.irctc.service.userService;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.govt.irctc.dto.*;
 import com.govt.irctc.exceptions.SecurityExceptions.*;
 import com.govt.irctc.exceptions.UserExceptions.UserAlreadyExistsException;
@@ -13,7 +14,7 @@ import java.util.List;
 
 public interface UserService {
     public String addUser(UserSignupDetailsDto userSignupDetailsDto)
-            throws UserCreationException, UserAlreadyExistsException, AddressCreationException;
+            throws UserCreationException, UserAlreadyExistsException, AddressCreationException, JsonProcessingException;
     public String logoutUser(String token) throws TokenNotFoundException;
     public UserDto validateUserToken(String token) throws TokenNotFoundException, InvalidTokenException;
     public LoginResponseDto loginUser(LoginDetailsDto loginDetailsDto) throws InvalidCredentialsException, PasswordMismatchException, LoginValidationException;
