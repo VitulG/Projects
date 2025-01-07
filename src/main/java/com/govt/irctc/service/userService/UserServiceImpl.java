@@ -1,7 +1,6 @@
 package com.govt.irctc.service.userService;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.govt.irctc.dto.*;
 import com.govt.irctc.enums.UserRole;
 import com.govt.irctc.exceptions.SecurityExceptions.*;
@@ -16,7 +15,6 @@ import com.govt.irctc.repository.BookingRepository;
 import com.govt.irctc.repository.TokenRepository;
 import com.govt.irctc.repository.UserRepository;
 import com.govt.irctc.service.addressservice.AddressService;
-import com.govt.irctc.service.kafkaservice.KafkaService;
 import com.govt.irctc.service.notificationservice.NotificationService;
 import com.govt.irctc.validation.UserDetailsValidator;
 import com.govt.irctc.validation.UserSessionValidator;
@@ -42,15 +40,13 @@ public class UserServiceImpl implements UserService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final NotificationService notificationService;
     private final AddressService addressService;
-    private final ObjectMapper objectMapper;
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<String, SendEmailDto> kafkaTemplate;
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder,
                            TokenRepository tokenRepository, UserDetailsValidator userDetailsValidator, AddressRepository addressRepository,
                            UserSessionValidator userSessionValidator, BookingRepository bookingRepository, RedisTemplate<String, Object> redisTemplate,
-                           NotificationService notificationService, AddressService addressService, KafkaTemplate<String, String> kafkaTemplate,
-                           ObjectMapper objectMapper) {
+                           NotificationService notificationService, AddressService addressService, KafkaTemplate<String, SendEmailDto> kafkaTemplate) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.tokenRepository = tokenRepository;
@@ -61,7 +57,6 @@ public class UserServiceImpl implements UserService {
         this.redisTemplate = redisTemplate;
         this.notificationService = notificationService;
         this.addressService = addressService;
-        this.objectMapper = objectMapper;
         this.kafkaTemplate = kafkaTemplate;
     }
 
@@ -91,8 +86,7 @@ public class UserServiceImpl implements UserService {
         emailDto.setBody("Your APPRTC account has been created successfully. " +
                 "You can now use this email address and password to log in to the application.");
 
-        String emailDtoString = objectMapper.writeValueAsString(emailDto);
-        kafkaTemplate.send("email-topic", emailDtoString);
+        kafkaTemplate.send("email-topic", emailDto);
 
         return "User created successfully with id: "+ newUser.getId();
     }

@@ -11,22 +11,19 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class KafkaService {
-    private final ObjectMapper objectMapper;
     private final EmailService emailService;
 
     @Autowired
-    public KafkaService(ObjectMapper objectMapper, EmailService emailService) {
-        this.objectMapper = objectMapper;
+    public KafkaService(EmailService emailService) {
         this.emailService = emailService;
     }
 
-    @KafkaListener(topics = "email-topic", groupId = "emailService")
-    public void emailQueue(String emailDto) throws JsonProcessingException {
-        SendEmailDto emailDtos = objectMapper.readValue(emailDto, SendEmailDto.class);
-        String from = emailDtos.getFrom();
-        String to = emailDtos.getTo();
-        String subject = emailDtos.getSubject();
-        String body = emailDtos.getBody();
+    @KafkaListener(topics = "email-topic", groupId = "emailService", containerFactory = "kafkaListenerContainerFactory")
+    public void emailQueue(SendEmailDto emailDto) throws JsonProcessingException {
+        String from = emailDto.getFrom();
+        String to = emailDto.getTo();
+        String subject = emailDto.getSubject();
+        String body = emailDto.getBody();
 
         emailService.sendEmail(from, to, subject, body);
     }
