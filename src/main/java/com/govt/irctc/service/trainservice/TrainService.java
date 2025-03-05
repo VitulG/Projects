@@ -18,4 +18,5 @@ public interface TrainService {
             InvalidTokenException, UnauthorizedUserException;
     public String deleteTrainByTrainNumber(Long trainNumber, String token) throws TrainNotFoundException,
             InvalidTokenException, UnauthorizedUserException;
+    List<TrainDto> searchTrainsByName(String trainName) throws TrainNotFoundException;
 }

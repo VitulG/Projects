@@ -2,6 +2,7 @@ package com.govt.irctc.service.trainservice;
 
 
 import com.govt.irctc.dto.TrainDto;
+import com.govt.irctc.elasticsearchrepository.TrainSearchRepository;
 import com.govt.irctc.enums.TrainStatus;
 import com.govt.irctc.enums.TrainType;
 import com.govt.irctc.enums.UserRole;
@@ -25,13 +26,16 @@ public class TrainServiceImpl implements TrainService{
     private final TrainRepository trainRepository;
     private final TokenRepository tokenRepository;
     private final TrainDetailsValidator trainDetailsValidator;
+    private final TrainSearchRepository trainSearchRepository;
 
     @Autowired
     public TrainServiceImpl(TrainRepository trainRepository,
-                            TokenRepository tokenRepository, TrainDetailsValidator trainDetailsValidator) {
+                            TokenRepository tokenRepository, TrainDetailsValidator trainDetailsValidator,
+                            TrainSearchRepository trainSearchRepository) {
         this.trainRepository = trainRepository;
         this.tokenRepository = tokenRepository;
         this.trainDetailsValidator = trainDetailsValidator;
+        this.trainSearchRepository = trainSearchRepository;
     }
 
     @Override
@@ -60,6 +64,7 @@ public class TrainServiceImpl implements TrainService{
         train.setTrainStatus(TrainStatus.valueOf(trainDto.getTrainStatus().toUpperCase()));
 
         trainRepository.save(train);
+        trainSearchRepository.save(train);
 
         return "Train created successfully with train number: "+ train.getTrainNumber();
     }
@@ -165,5 +170,26 @@ public class TrainServiceImpl implements TrainService{
         train.setDeleted(true);
         trainRepository.save(train);
         return "train deleted successfully";
+    }
+
+    public List<TrainDto> searchTrainsByName(String trainName) throws TrainNotFoundException {
+        List<Train> trains = trainSearchRepository.searchTrainByTrainNameContaining(trainName);
+
+        if(trains.isEmpty()) {
+            throw new TrainNotFoundException("No trains found");
+        }
+
+        List<TrainDto> trainDtos = new ArrayList<>();
+        for(Train train : trains) {
+            if(!train.isDeleted()) {
+                TrainDto trainDto = new TrainDto();
+                trainDto.setTrainName(train.getTrainName());
+                trainDto.setTrainNumber(train.getTrainNumber());
+                trainDto.setTrainStatus(train.getTrainStatus().name());
+                trainDto.setTrainType(train.getTrainType().name());
+                trainDtos.add(trainDto);
+            }
+        }
+        return trainDtos;
     }
 }

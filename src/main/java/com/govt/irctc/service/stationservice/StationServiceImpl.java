@@ -52,7 +52,6 @@ public class StationServiceImpl implements StationService {
         City city = cityRepository.findByCityName(detailsDto.getCity())
                 .orElseThrow(() -> new CityNotFoundException("City not found"));
         newStation.setCity(city);
-        city.setStation(newStation);
 
         newStation.setStationStatus(StationStatus.valueOf(detailsDto.getStationStatus().toUpperCase()));
 
@@ -77,6 +76,7 @@ public class StationServiceImpl implements StationService {
             route.getStations().add(newStation);
         }
         stationRepository.save(newStation);
+        city.setStation(newStation);
 
         return "Station added successfully";
     }
